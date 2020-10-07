@@ -1,0 +1,4 @@
+rootProject.name = 'Fluder'
+include 'fluder-processor'
+include 'fluder-demo'
+

@@ -1,0 +1,9 @@
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'fr.tokazio', name: 'fluder-processor', version: '1.0-SNAPSHOT'
+    annotationProcessor group: 'fr.tokazio', name: 'fluder-processor', version: '1.0-SNAPSHOT'
+}

@@ -1,0 +1,5 @@
+/.gradle/
+/.idea/
+/build/
+/fluder-demo/build/
+/fluder-processor/build/
