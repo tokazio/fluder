@@ -6,4 +6,6 @@ repositories {
 dependencies {
     compile group: 'fr.tokazio', name: 'fluder-processor', version: '1.0-SNAPSHOT'
     annotationProcessor group: 'fr.tokazio', name: 'fluder-processor', version: '1.0-SNAPSHOT'
+    annotationProcessor group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    annotationProcessor group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.1'
 }

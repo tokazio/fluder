@@ -4,6 +4,7 @@ package fr.tokazio.fluder.processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
@@ -71,6 +72,11 @@ public class FluderProcessor extends AbstractProcessor {
                             }
                             Optional opt = ve.getAnnotation(Optional.class);
                             Order order = ve.getAnnotation(Order.class);
+                            Nonnull nonnull = ve.getAnnotation(Nonnull.class);
+
+                            //TODO
+                            //handle javax.validation.constraints (beanValidation)
+
                             note("\t'" + ve.getSimpleName().toString() + "' is a '" + ve.asType().toString() + "' " + (ve.getModifiers().contains(Modifier.PRIVATE) ? "private" : "") + " field " + (opt != null ? "@Optional" : "") + " " + (order != null ? "@Order(" + order.value() + ")" : ""));
                             if (order != null) {
                                 ordered++;
@@ -94,7 +100,7 @@ public class FluderProcessor extends AbstractProcessor {
                                 public boolean isPrivate() {
                                     return ve.getModifiers().contains(Modifier.PRIVATE);
                                 }
-                            }, opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1);
+                            }, opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1, nonnull != null);
 
                             note("\tA fluent builder will be generated for " + candidate);
                             candidates.add(candidate);

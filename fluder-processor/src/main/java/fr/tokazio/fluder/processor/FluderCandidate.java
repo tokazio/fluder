@@ -9,13 +9,19 @@ public class FluderCandidate {
     private final boolean optional;
     private final String defaultValue;
     private final int order;
+    private final boolean isNonnull;
 
-    public FluderCandidate(final String simpleClassName, final FluderField field, final boolean optional, final String defaultValue, final int order) {
+    public FluderCandidate(final String simpleClassName, final FluderField field, final boolean optional, final String defaultValue, final int order, final boolean isNonnull) {
         this.simpleClassName = simpleClassName;
         this.field = field;
         this.optional = optional;
         this.defaultValue = defaultValue;
         this.order = order;
+        this.isNonnull = isNonnull;
+    }
+
+    public boolean isNonnull() {
+        return isNonnull;
     }
 
     public static String firstUpper(final String str) {
