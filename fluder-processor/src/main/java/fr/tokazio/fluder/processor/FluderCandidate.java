@@ -2,21 +2,24 @@ package fr.tokazio.fluder.processor;
 
 public class FluderCandidate {
 
+    public static final String PREPEND_INTERFACE_NAME = "";
+
     private final FluderField field;
-    private final String className;
-    private final String packageName;
+    private final String simpleClassName;
     private final boolean optional;
     private final String defaultValue;
     private final int order;
 
-    public FluderCandidate(String className, FluderField field, boolean optional, String defaultValue, int order) {
-        final int index = className.lastIndexOf('.');
-        this.packageName = className.substring(0, index);
-        this.className = className.substring(index + 1);
+    public FluderCandidate(final String simpleClassName, final FluderField field, final boolean optional, final String defaultValue, final int order) {
+        this.simpleClassName = simpleClassName;
         this.field = field;
         this.optional = optional;
         this.defaultValue = defaultValue;
         this.order = order;
+    }
+
+    public static String firstUpper(final String str) {
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
     public String defaultValue() {
@@ -27,13 +30,18 @@ public class FluderCandidate {
         return optional;
     }
 
-
-    public String intfName() {
-        return "FluentBuilder" + className + firstUpper(field.getName());
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(simpleClassName).append("::").append(field.getName())
+                .append(" ").append(isPrivate() ? "(private) " : "")
+                .append(isOptional() ? "@Optional" + (!defaultValue.equals("\0") ? "(" + defaultValue + ") " : " ") : "")
+                .append(order >= 0 ? "@Order(" + order + ") " : " ");
+        return sb.toString();
     }
 
-    private String firstUpper(String str) {
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    public String intfName() {
+        return PREPEND_INTERFACE_NAME + simpleClassName + firstUpper(field.getName());
     }
 
     public String setterType() {
@@ -45,9 +53,6 @@ public class FluderCandidate {
         return firstUpper(field.getName());
     }
 
-    public String pckName() {
-        return packageName;
-    }
 
     public String fieldSignature() {
         return field.getTypeName() + " " + field.getName();

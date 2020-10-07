@@ -7,17 +7,162 @@ import java.util.*;
  */
 public class Fluder {
 
-    public List<FluderFile> generate(String simpleClassName, List<FluderCandidate> candidatesOrg) {
+    private final List<FluderCandidate> requiredCandidates = new LinkedList<>();
+    private final List<FluderCandidate> optionalCandidates = new LinkedList<>();
+    private final List<FluderFile> files = new LinkedList<>();
 
-        Collections.sort(candidatesOrg, new Comparator<FluderCandidate>() {
-            @Override
-            public int compare(FluderCandidate o1, FluderCandidate o2) {
-                return Integer.compare(o1.order(), o2.order());
+    public List<FluderFile> generate(final String packageName, final String simpleClassName, final List<FluderCandidate> candidatesOrg) {
+        orderCandidates(candidatesOrg);
+        sortRequiredAndOptionalCandidates(candidatesOrg);
+        generateRequiredInterfaces(packageName, simpleClassName);
+        generateCreatorInterface(packageName, simpleClassName);
+        generateBuilderClass(packageName, simpleClassName);
+        return files;
+    }
+
+    private void generateBuilderClass(final String packageName, final String simpleClassName) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("package ").append(packageName).append(";\n\n");
+        final String builderName = builderName(simpleClassName);
+        sb.append("public class ").append(builderName).append(" implements ");
+        generateBuilderImplements(sb, simpleClassName);
+        sb.append("{\n\n");
+        generateBuilderFields(sb);
+        generateBuilderCtor(sb, simpleClassName);
+        generateBuilderSettersImplementations(sb, simpleClassName);
+        generateBuilderOptionalSettersImplementations(sb, simpleClassName);
+        generateBuilderBuildMethod(sb, simpleClassName);
+        generateBuilderSingleton(sb, builderName);
+        sb.append("\n}");
+        files.add(new FluderFile(builderName, sb.toString()));
+    }
+
+    private String builderName(final String simpleClassName) {
+        return simpleClassName + "Builder";
+    }
+
+    private void generateBuilderSingleton(final StringBuilder sb, final String builderName) {
+        sb.append("\tpublic static ").append(requiredCandidates.get(0).intfName()).append(" getInstance(){\n")
+                .append("\t\treturn new ").append(builderName).append("();\n")
+                .append("\t}");
+    }
+
+    private void generateBuilderBuildMethod(final StringBuilder sb, final String simpleClassName) {
+        sb.append("\t@Override\n")
+                .append("\tpublic ").append(simpleClassName).append(" build(){\n")
+                .append("\t\tfinal ").append(simpleClassName).append(" out = new ").append(simpleClassName).append("();\n");
+        for (FluderCandidate cf : requiredCandidates) {
+            candidateAssignInBuild(sb, simpleClassName, cf);
+        }
+        for (FluderCandidate cf : optionalCandidates) {
+            candidateAssignInBuild(sb, simpleClassName, cf);
+        }
+        sb.append("\t\treturn out;\n")
+                .append("\t}\n\n");
+    }
+
+    private void generateBuilderOptionalSettersImplementations(final StringBuilder sb, final String simpleClassName) {
+        for (FluderCandidate cOpt : optionalCandidates) {
+            generateBuilderSetter(sb, creatorName(simpleClassName), cOpt);
+        }
+    }
+
+    private void generateBuilderSetter(final StringBuilder sb, final String typeName, final FluderCandidate candidate) {
+        sb.append("\t@Override\n")
+                .append("\tpublic ").append(typeName).append(" set").append(candidate.setterName()).append("(").append(candidate.setterType()).append(" in){\n");
+        sb.append("\t\tthis.").append(candidate.fieldName()).append(" = in;\n");
+        if (candidate.isOptional()) {
+            sb.append("\t\tthis.").append(candidate.fieldName()).append("Setted = true;\n");
+        }
+        sb.append("\t\treturn this;\n")
+                .append("\t}\n\n");
+    }
+
+    private void generateBuilderSettersImplementations(final StringBuilder sb, final String simpleClassName) {
+        final Iterator<FluderCandidate> itImplSet = requiredCandidates.iterator();
+        FluderCandidate c = itImplSet.next();
+        while (itImplSet.hasNext()) {
+            final FluderCandidate next = itImplSet.next();
+            final String typeName = next.intfName();
+            generateBuilderSetter(sb, typeName, c);
+            c = next;
+        }
+        generateBuilderSetter(sb, creatorName(simpleClassName), c);
+    }
+
+    private void generateBuilderCtor(final StringBuilder sb, final String simpleClassName) {
+        sb.append("\n\tprivate ").append(simpleClassName).append("Builder(){\n")
+                .append("\t\tsuper();\n")
+                .append("\t}\n\n");
+    }
+
+    private void generateBuilderFields(final StringBuilder sb) {
+        for (FluderCandidate c : requiredCandidates) {
+            sb.append("\tprivate ").append(c.fieldSignature()).append(";\n");
+        }
+        for (FluderCandidate c : optionalCandidates) {
+            sb.append("\tprivate ").append(c.fieldSignature()).append(";\n");
+            sb.append("\tprivate boolean ").append(c.fieldName()).append("Setted;\n");
+        }
+    }
+
+    private void generateBuilderImplements(final StringBuilder sb, final String simpleClassName) {
+        for (FluderCandidate requiredCandidate : requiredCandidates) {
+            sb.append(requiredCandidate.intfName()).append(", ");
+        }
+        sb.append(simpleClassName).append("Creator");
+    }
+
+    private void generateCreatorInterface(final String packageName, final String simpleClassName) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("package ").append(packageName).append(";\n\n");
+        final String creatorName = creatorName(simpleClassName);
+        sb.append("public interface ").append(creatorName).append("{\n\n");
+        generateCreatorSettersForOptionalCandidates(sb, creatorName);
+        generateCreatorBuildMethod(sb, simpleClassName);
+        sb.append("\n}");
+        files.add(new FluderFile(creatorName, sb.toString()));
+    }
+
+    private void generateCreatorBuildMethod(final StringBuilder sb, final String simpleClassName) {
+        sb.append("\t").append(simpleClassName).append(" build();\n");
+    }
+
+    private void generateCreatorSettersForOptionalCandidates(final StringBuilder sb, final String creatorName) {
+        for (FluderCandidate optionalCandidate : optionalCandidates) {
+            sb.append("\t").append(creatorName).append(" set").append(optionalCandidate.setterName()).append("(").append(optionalCandidate.setterType()).append(" in);").append("\n\n");
+        }
+    }
+
+    private void generateRequiredInterfaces(final String packageName, final String simpleClassName) {
+        final Iterator<FluderCandidate> it = requiredCandidates.iterator();
+        FluderCandidate candidate = it.next();
+        while (it.hasNext()) {
+            if (!candidate.isOptional()) {
+                final FluderCandidate next = it.next();
+                generateRequiredInterface(packageName, simpleClassName, next.intfName(), candidate);
+                candidate = next;
+            } else {
+                candidate = it.next();
             }
-        });
+        }
+        generateRequiredInterface(packageName, simpleClassName, creatorName(simpleClassName), candidate);
+    }
 
-        final List<FluderCandidate> requiredCandidates = new LinkedList<>();
-        final List<FluderCandidate> optionalCandidates = new LinkedList<>();
+    private String creatorName(final String simpleClassName) {
+        return simpleClassName + "Creator";
+    }
+
+    private void generateRequiredInterface(final String packageName, final String simpleClassName, final String intfName, final FluderCandidate candidate) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("package ").append(packageName).append(";\n\n");
+        sb.append("public interface ").append(candidate.intfName()).append("{\n");
+        sb.append("\t").append(intfName).append(" set").append(candidate.setterName()).append("(").append(candidate.setterType()).append(" in);").append("\n");
+        sb.append("}");
+        files.add(new FluderFile(candidate.intfName(), sb.toString()));
+    }
+
+    private void sortRequiredAndOptionalCandidates(final List<FluderCandidate> candidatesOrg) {
         for (FluderCandidate c : candidatesOrg) {
             if (!c.isOptional()) {
                 requiredCandidates.add(c);
@@ -25,150 +170,39 @@ public class Fluder {
                 optionalCandidates.add(c);
             }
         }
-
-        final List<FluderFile> files = new LinkedList<>();
-        //generate intermediate intf
-        Iterator<FluderCandidate> it = requiredCandidates.iterator();
-        FluderCandidate candidate = it.next();
-        while (it.hasNext()) {
-            if (!candidate.isOptional()) {
-                final StringBuilder sb = new StringBuilder();
-                sb.append("package ").append(candidate.pckName()).append(";\n\n");
-                sb.append("public interface ").append(candidate.intfName()).append("{\n");
-                final FluderCandidate next = it.next();
-                String nextIntfName = next.intfName();
-                final String javaCode = nextIntfName + " set" + candidate.setterName() + "(" + candidate.setterType() + " in);";
-                sb.append("\t").append(javaCode).append("\n");
-                sb.append("}");
-                System.out.println(sb.toString());
-                files.add(new FluderFile(candidate.intfName(), sb.toString()));
-                candidate = next;
-            } else {
-                candidate = it.next();
-            }
-        }
-        //generate last intf
-        final StringBuilder sb = new StringBuilder();
-        sb.append("package ").append(candidate.pckName()).append(";\n\n");
-        sb.append("public interface ").append(candidate.intfName()).append("{\n");
-        final String javaCode = simpleClassName + "Creator set" + candidate.setterName() + "(" + candidate.setterType() + " in);";
-        sb.append("\t").append(javaCode).append("\n");
-        sb.append("}");
-        System.out.println(sb.toString());
-        files.add(new FluderFile(candidate.intfName(), sb.toString()));
-        //generate Creator intf
-        final StringBuilder sbCreator = new StringBuilder();
-        sbCreator.append("package ").append(candidate.pckName()).append(";\n\n");
-        final String intfName = simpleClassName + "Creator";
-        sbCreator.append("public interface ").append(intfName).append("{\n");
-        for (FluderCandidate c : optionalCandidates) {
-            sbCreator.append("\t").append(intfName).append(" set").append(c.setterName()).append("(").append(c.setterType()).append(" in);").append("\n\n");
-        }
-        final String build = simpleClassName + " build();";
-        sbCreator.append("\t").append(build).append("\n");
-        sbCreator.append("}");
-        System.out.println(sb.toString());
-        files.add(new FluderFile(intfName, sbCreator.toString()));
-        //generate builder
-        final StringBuilder builderStr = new StringBuilder();
-        builderStr.append("package ").append(candidate.pckName()).append(";\n\n");
-        builderStr.append("public class ").append(simpleClassName).append("Builder implements ");
-        final Iterator<FluderCandidate> itImpl = requiredCandidates.iterator();
-        while (itImpl.hasNext()) {
-            final FluderCandidate c = itImpl.next();
-            builderStr.append(c.intfName()).append(", ");
-        }
-        builderStr.append(simpleClassName).append("Creator");
-        builderStr.append("{\n\n");
-        //fields
-        for (FluderCandidate c : requiredCandidates) {
-            builderStr.append("\tprivate ").append(c.fieldSignature()).append(";\n");
-        }
-        for (FluderCandidate c : optionalCandidates) {
-            builderStr.append("\tprivate ").append(c.fieldSignature()).append(";\n");
-            builderStr.append("\tprivate boolean ").append(c.fieldName()).append("Setted;\n");
-
-        }
-        builderStr.append("\n\tprivate ").append(simpleClassName).append("Builder(){\n")
-                .append("\t\tsuper();\n")
-                .append("\t}\n\n");
-        //implements setters
-        final Iterator<FluderCandidate> itImplSet = requiredCandidates.iterator();
-        FluderCandidate c = itImplSet.next();
-        while (itImplSet.hasNext()) {
-            FluderCandidate next = itImplSet.next();
-            String typeName = next.intfName();
-            builderStr.append("\t@Override\n")
-                    .append("\tpublic ").append(typeName).append(" set").append(c.setterName()).append("(").append(c.setterType()).append(" in){\n");
-            builderStr.append("\t\tthis.").append(c.fieldName()).append(" = in;\n");
-            builderStr.append("\t\treturn this;\n")
-                    .append("\t}\n\n");
-            c = next;
-        }
-        //implements last setter
-        builderStr.append("\t@Override\n")
-                .append("\tpublic ").append(simpleClassName).append("Creator").append(" set").append(c.setterName()).append("(").append(c.setterType()).append(" in){\n");
-        builderStr.append("\t\tthis.").append(c.fieldName()).append(" = in;\n");
-        builderStr.append("\t\treturn this;\n")
-                .append("\t}\n\n");
-        //optionals in Creator
-        for (FluderCandidate cOpt : optionalCandidates) {
-            builderStr.append("\t@Override\n")
-                    .append("\tpublic ").append(simpleClassName).append("Creator").append(" set").append(cOpt.setterName()).append("(").append(cOpt.setterType()).append(" in){\n");
-            builderStr.append("\t\tthis.").append(cOpt.fieldName()).append(" = in;\n");
-            builderStr.append("\t\tthis.").append(cOpt.fieldName()).append("Setted = true;\n");
-            builderStr.append("\t\treturn this;\n")
-                    .append("\t}\n\n");
-        }
-        //implements build
-        builderStr.append("\t@Override\n")
-                .append("\tpublic ").append(simpleClassName).append(" build(){\n")
-                .append("\t\tfinal ").append(simpleClassName).append(" out = new ").append(simpleClassName).append("();\n");
-        for (FluderCandidate cf : requiredCandidates) {
-            candidateAssignInBuild(simpleClassName, builderStr, cf);
-        }
-        for (FluderCandidate cf : optionalCandidates) {
-            candidateAssignInBuild(simpleClassName, builderStr, cf);
-        }
-        builderStr.append("\t\treturn out;\n")
-                .append("\t}\n\n");
-
-        //
-        builderStr.append("\tpublic static ").append(requiredCandidates.get(0).intfName()).append(" getInstance(){\n").append("\t\treturn new ").append(simpleClassName).append("Builder();\n")
-                .append("\t}\n");
-        builderStr.append("}");
-        System.out.println(builderStr.toString());
-        files.add(new FluderFile(simpleClassName + "Builder", builderStr.toString()));
-        return files;
     }
 
-    private void candidateAssignInBuild(String simpleClassName, StringBuilder builderStr, FluderCandidate cf) {
+    private void orderCandidates(final List<FluderCandidate> candidatesOrg) {
+        Collections.sort(candidatesOrg, new Comparator<FluderCandidate>() {
+            @Override
+            public int compare(FluderCandidate o1, FluderCandidate o2) {
+                return Integer.compare(o1.order(), o2.order());
+            }
+        });
+    }
+
+    private void candidateAssignInBuild(final StringBuilder sb, final String simpleClassName, final FluderCandidate cf) {
         String value = cf.fieldName();
         if (cf.isOptional()) {
             if (cf.defaultValue() != null && !cf.defaultValue().equals("\0")) {
                 value = "(" + cf.fieldName() + "Setted ? " + value + " : " + cf.defaultValue() + ")";
             } else {
-                builderStr.append("\t\tif(" + cf.fieldName() + "Setted){\n");
+                sb.append("\t\tif(").append(cf.fieldName()).append("Setted){\n");
             }
         }
         if (!cf.isPrivate()) {
-            builderStr.append("\t\tout.").append(cf.fieldName()).append("=").append(value).append(";\n");
+            sb.append("\t\tout.").append(cf.fieldName()).append("=").append(value).append(";\n");
         } else {
-            builderStr.append("\t\ttry {\n")
-                    .append("\t\t\tfinal java.lang.reflect.Field f = " + simpleClassName + ".class.getDeclaredField(\"" + cf.fieldName() + "\")").append(";\n")
+            sb.append("\t\ttry {\n")
+                    .append("\t\t\tfinal java.lang.reflect.Field f = ").append(simpleClassName).append(".class.getDeclaredField(\"").append(cf.fieldName()).append("\")").append(";\n")
                     .append("\t\t\tf.setAccessible(true);\n")
-                    .append("\t\t\tf.set(out," + value + ");\n")
+                    .append("\t\t\tf.set(out,").append(value).append(");\n")
                     .append("\t\t} catch (NoSuchFieldException | IllegalAccessException e) {\n")
                     .append("\t\t\te.printStackTrace();\n")
                     .append("\t\t}\n");
         }
-        if (cf.defaultValue() != null && !cf.defaultValue().equals("\0")) {
-//nothing
-        } else {
-            builderStr.append("\t\t}\n");
+        if (cf.defaultValue() == null || cf.defaultValue().equals("\0")) {
+            sb.append("\t\t}\n");
         }
-
     }
-
-
 }

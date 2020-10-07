@@ -1,5 +1,9 @@
 package fr.tokazio.fluder.processor;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
@@ -16,78 +20,86 @@ import java.util.Set;
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class FluderProcessor extends AbstractProcessor {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FluderProcessor.class);
     private final Fluder fluder = new Fluder();
-
-    private int ordered;
-    private int unordered;
+    private Messager messager;
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        ordered = 0;
-        unordered = 0;
-        final Messager messager = processingEnv.getMessager();
-        messager.printMessage(Diagnostic.Kind.NOTE, "Processing @Buildable annotation");
+        int ordered = 0;
+        int unordered = 0;
+        messager = processingEnv.getMessager();
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
+            note("FluderProcessor is processing @Buildable annotations...");
             for (Element el : annotatedElements) {
                 if (el.getKind() != ElementKind.CLASS) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, "Can be applied to class only.");
-                    System.out.println("Can be applied to class only.");
+                    error("@Buildable can only be applied to class.");
                     return true;
                 }
                 if (el instanceof TypeElement) {
                     TypeElement tl = (TypeElement) el;
-                    messager.printMessage(Diagnostic.Kind.NOTE, tl.getQualifiedName().toString());
-                    System.out.println("@Buildable processing " + tl.getQualifiedName().toString() + "...");
-                    final String packagename = tl.getQualifiedName().toString().substring(0, tl.getQualifiedName().toString().lastIndexOf('.'));
+                    note("@Buildable processing class " + tl.getQualifiedName().toString() + "...");
+                    final String packageName = tl.getQualifiedName().toString().substring(0, tl.getQualifiedName().toString().lastIndexOf('.'));
                     final List<FluderCandidate> candidates = new LinkedList<>();
                     for (Element inCl : tl.getEnclosedElements()) {
-                        System.out.println("\tElement " + inCl.getSimpleName());
+                        note("* Found element '" + inCl.getSimpleName().toString() + "' in " + tl.getQualifiedName().toString());
                         if (inCl instanceof VariableElement) {
                             final VariableElement ve = (VariableElement) inCl;
-                            if (!ve.getModifiers().contains(Modifier.TRANSIENT) && !ve.getModifiers().contains(Modifier.FINAL)) {
-                                System.out.println("\t\t'" + ve.getSimpleName().toString() + "' is a '" + ve.asType().toString() + "' " + (ve.getModifiers().contains(Modifier.PRIVATE) ? "private" : "") + " variable");
-
-                                Optional opt = ve.getAnnotation(Optional.class);
-                                Order order = ve.getAnnotation(Order.class);
-
-                                if (order != null) {
-                                    ordered++;
-                                } else {
-                                    if (opt == null) {
-                                        unordered++;
-                                    }
+                            if (ve.getModifiers().contains(Modifier.TRANSIENT)) {
+                                note("\t'" + ve.getSimpleName().toString() + "' is 'transient', FluderProcessor has ignored it");
+                                continue;
+                            }
+                            if (ve.getModifiers().contains(Modifier.FINAL)) {
+                                note("\t'" + ve.getSimpleName().toString() + "' is 'final', FluderProcessor has ignored it");
+                                continue;
+                            }
+                            Optional opt = ve.getAnnotation(Optional.class);
+                            Order order = ve.getAnnotation(Order.class);
+                            note("\t'" + ve.getSimpleName().toString() + "' is a '" + ve.asType().toString() + "' " + (ve.getModifiers().contains(Modifier.PRIVATE) ? "private" : "") + " field " + (opt != null ? "@Optional" : "") + " " + (order != null ? "@Order(" + order.value() + ")" : ""));
+                            if (order != null) {
+                                ordered++;
+                            } else {
+                                if (opt == null) {
+                                    unordered++;
+                                }
+                            }
+                            FluderCandidate candidate = new FluderCandidate(tl.getSimpleName().toString(), new FluderField() {
+                                @Override
+                                public String getTypeName() {
+                                    return ve.asType().toString();
                                 }
 
-                                candidates.add(new FluderCandidate(tl.getQualifiedName().toString(), new FluderField() {
-                                    @Override
-                                    public String getTypeName() {
-                                        return ve.asType().toString();
-                                    }
+                                @Override
+                                public String getName() {
+                                    return ve.getSimpleName().toString();
+                                }
 
-                                    @Override
-                                    public String getName() {
-                                        return ve.getSimpleName().toString();
-                                    }
+                                @Override
+                                public boolean isPrivate() {
+                                    return ve.getModifiers().contains(Modifier.PRIVATE);
+                                }
+                            }, opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1);
 
-                                    @Override
-                                    public boolean isPrivate() {
-                                        return ve.getModifiers().contains(Modifier.PRIVATE);
-                                    }
-                                }, opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1));
-                            }
+                            note("\tA fluent builder will be generated for " + candidate);
+                            candidates.add(candidate);
+                        } else {
+                            note("\t" + inCl.getSimpleName().toString() + " is not a field.");
+                            note("\tFluderProcessor can't handle it at this time.");
                         }
                     }
 
                     if (ordered > 0 && unordered > 0) {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "It seems you've started to use @Order in " + tl.getQualifiedName().toString() + ". You must use @Order on each fields.");
+                        error("It seems you've started to use @Order in " + tl.getQualifiedName().toString() + ". You must use @Order on each non transient and non @Optional fields.");
                     }
 
-                    System.out.println("Adding files for " + tl.getSimpleName().toString() + "...");
-                    List<FluderFile> files = fluder.generate(tl.getSimpleName().toString(), candidates);
+                    final String simpleClassName = tl.getSimpleName().toString();
+                    List<FluderFile> files = fluder.generate(packageName, simpleClassName, candidates);
+                    note("FluderProcessor generation report for " + tl.getQualifiedName().toString() + ":");
                     for (FluderFile file : files) {
                         try {
-                            writeClassFile(packagename + ".", file.name(), file.javaCode());
+                            writeClassFile(packageName + ".", file.name(), file.javaCode());
+                            note("\t* " + packageName + "." + file.name() + " generated");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -96,6 +108,16 @@ public class FluderProcessor extends AbstractProcessor {
             }
         }
         return true;
+    }
+
+    private void error(String str) {
+        messager.printMessage(Diagnostic.Kind.ERROR, str);
+        LOGGER.error(str);
+    }
+
+    private void note(String str) {
+        messager.printMessage(Diagnostic.Kind.NOTE, str);
+        LOGGER.debug(str);
     }
 
     public Set<String> getSupportedAnnotationTypes() {
