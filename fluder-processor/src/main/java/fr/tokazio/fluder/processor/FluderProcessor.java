@@ -42,8 +42,23 @@ public class FluderProcessor extends AbstractProcessor {
                     note("@Buildable processing class " + tl.getQualifiedName().toString() + "...");
                     final String packageName = tl.getQualifiedName().toString().substring(0, tl.getQualifiedName().toString().lastIndexOf('.'));
                     final List<FluderCandidate> candidates = new LinkedList<>();
+                    boolean noArgCtorIsPrivate = false;
                     for (Element inCl : tl.getEnclosedElements()) {
                         note("* Found element '" + inCl.getSimpleName().toString() + "' in " + tl.getQualifiedName().toString());
+                        if (inCl instanceof ExecutableElement) {
+                            final ExecutableElement xe = (ExecutableElement) inCl;
+                            if ("<init>".equals(xe.getSimpleName().toString())) {
+                                if (!xe.getParameters().isEmpty()) {
+                                    error("\t'" + tl.getQualifiedName().toString() + "' needs a no arg constructor in order to FluderProcessor be able to generate a fluent builder");
+                                    return true;
+                                }
+                                if (xe.getModifiers().contains(Modifier.PRIVATE)) {
+                                    noArgCtorIsPrivate = true;
+                                    note("\t'" + tl.getQualifiedName().toString() + "' constructor is private");
+                                    continue;
+                                }
+                            }
+                        }
                         if (inCl instanceof VariableElement) {
                             final VariableElement ve = (VariableElement) inCl;
                             if (ve.getModifiers().contains(Modifier.TRANSIENT)) {
@@ -94,7 +109,7 @@ public class FluderProcessor extends AbstractProcessor {
                     }
 
                     final String simpleClassName = tl.getSimpleName().toString();
-                    List<FluderFile> files = fluder.generate(packageName, simpleClassName, candidates);
+                    List<FluderFile> files = fluder.generate(packageName, simpleClassName, noArgCtorIsPrivate, candidates);
                     note("FluderProcessor generation report for " + tl.getQualifiedName().toString() + ":");
                     for (FluderFile file : files) {
                         try {

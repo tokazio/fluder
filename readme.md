@@ -20,8 +20,12 @@ If you use it, you must specify it for each fields.
 ### transient/final
 Transient/final fields are ignored.
 
-### private
+### non public
 The builder use reflection API to build a private field
+
+### private constructor
+When you make a builder, you generally hide the possibility to instanciate the target object without this Builder.
+Then the private constructor is accessed via the reflection API.
 
 ## Example
 
@@ -45,6 +49,11 @@ public class Email {
     private String from;
 
     transient Object notInBuilder;
+
+    //Hide me forcing the builder usage
+    private Email(){
+        super();
+    }
 }
 ```
 Can now be created like this

@@ -11,16 +11,16 @@ public class Fluder {
     private final List<FluderCandidate> optionalCandidates = new LinkedList<>();
     private final List<FluderFile> files = new LinkedList<>();
 
-    public List<FluderFile> generate(final String packageName, final String simpleClassName, final List<FluderCandidate> candidatesOrg) {
+    public List<FluderFile> generate(final String packageName, final String simpleClassName, final boolean noArgCtorIsPrivate, final List<FluderCandidate> candidatesOrg) {
         orderCandidates(candidatesOrg);
         sortRequiredAndOptionalCandidates(candidatesOrg);
         generateRequiredInterfaces(packageName, simpleClassName);
         generateCreatorInterface(packageName, simpleClassName);
-        generateBuilderClass(packageName, simpleClassName);
+        generateBuilderClass(packageName, simpleClassName, noArgCtorIsPrivate);
         return files;
     }
 
-    private void generateBuilderClass(final String packageName, final String simpleClassName) {
+    private void generateBuilderClass(final String packageName, final String simpleClassName, final boolean noArgCtorIsPrivate) {
         final StringBuilder sb = new StringBuilder();
         sb.append("package ").append(packageName).append(";\n\n");
         final String builderName = builderName(simpleClassName);
@@ -31,7 +31,7 @@ public class Fluder {
         generateBuilderCtor(sb, simpleClassName);
         generateBuilderSettersImplementations(sb, simpleClassName);
         generateBuilderOptionalSettersImplementations(sb, simpleClassName);
-        generateBuilderBuildMethod(sb, simpleClassName);
+        generateBuilderBuildMethod(sb, simpleClassName, noArgCtorIsPrivate);
         generateBuilderSingleton(sb, builderName);
         sb.append("\n}");
         files.add(new FluderFile(builderName, sb.toString()));
@@ -47,10 +47,23 @@ public class Fluder {
                 .append("\t}");
     }
 
-    private void generateBuilderBuildMethod(final StringBuilder sb, final String simpleClassName) {
+    private void generateBuilderBuildMethod(final StringBuilder sb, final String simpleClassName, final boolean noArgCtorIsPrivate) {
         sb.append("\t@Override\n")
-                .append("\tpublic ").append(simpleClassName).append(" build(){\n")
-                .append("\t\tfinal ").append(simpleClassName).append(" out = new ").append(simpleClassName).append("();\n");
+                .append("\tpublic ").append(simpleClassName).append(" build(){\n");
+        if (!noArgCtorIsPrivate) {
+            sb.append("\t\tfinal ").append(simpleClassName).append(" out = new ").append(simpleClassName).append("();\n");
+        } else {
+            sb.append("\t\t" + simpleClassName + " out = null;\n")
+                    .append("\t\ttry{\n")
+                    .append("\t\t\tjava.lang.reflect.Constructor ctor = " + simpleClassName + ".class.getDeclaredConstructor();\n")
+                    .append("\t\t\tctor.setAccessible(true);\n")
+                    .append("\t\t\tout  = (" + simpleClassName + ") ctor.newInstance();\n")
+                    .append("\t\t} catch (InstantiationException  | java.lang.reflect.InvocationTargetException  | NoSuchMethodException  | IllegalAccessException ex) {\n")
+                    .append("\t\t\tthrow new RuntimeException(ex);\n")
+                    .append("\t\t}\n");
+        }
+
+
         for (FluderCandidate cf : requiredCandidates) {
             candidateAssignInBuild(sb, simpleClassName, cf);
         }
@@ -197,8 +210,8 @@ public class Fluder {
                     .append("\t\t\tfinal java.lang.reflect.Field f = ").append(simpleClassName).append(".class.getDeclaredField(\"").append(cf.fieldName()).append("\")").append(";\n")
                     .append("\t\t\tf.setAccessible(true);\n")
                     .append("\t\t\tf.set(out,").append(value).append(");\n")
-                    .append("\t\t} catch (NoSuchFieldException | IllegalAccessException e) {\n")
-                    .append("\t\t\te.printStackTrace();\n")
+                    .append("\t\t} catch (NoSuchFieldException | IllegalAccessException ex) {\n")
+                    .append("\t\t\tthrow new RuntimeException(ex);\n")
                     .append("\t\t}\n");
         }
         if (cf.defaultValue() == null || cf.defaultValue().equals("\0")) {
