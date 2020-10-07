@@ -18,13 +18,13 @@ public class FluderProcessor extends AbstractProcessor {
 
     private final Fluder fluder = new Fluder();
 
-    public static String extractSimpleClassName(String str) {
-        final int index = str.lastIndexOf('.');
-        return str.substring(index + 1);
-    }
+    private int ordered;
+    private int unordered;
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        ordered = 0;
+        unordered = 0;
         final Messager messager = processingEnv.getMessager();
         messager.printMessage(Diagnostic.Kind.NOTE, "Processing @Buildable annotation");
         for (TypeElement annotation : annotations) {
@@ -49,6 +49,15 @@ public class FluderProcessor extends AbstractProcessor {
                                 System.out.println("\t\t'" + ve.getSimpleName().toString() + "' is a '" + ve.asType().toString() + "' " + (ve.getModifiers().contains(Modifier.PRIVATE) ? "private" : "") + " variable");
 
                                 Optional opt = ve.getAnnotation(Optional.class);
+                                Order order = ve.getAnnotation(Order.class);
+
+                                if (order != null) {
+                                    ordered++;
+                                } else {
+                                    if (opt == null) {
+                                        unordered++;
+                                    }
+                                }
 
                                 candidates.add(new FluderCandidate(tl.getQualifiedName().toString(), new FluderField() {
                                     @Override
@@ -65,10 +74,15 @@ public class FluderProcessor extends AbstractProcessor {
                                     public boolean isPrivate() {
                                         return ve.getModifiers().contains(Modifier.PRIVATE);
                                     }
-                                }, opt != null));//,fbs));
+                                }, opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1));
                             }
                         }
                     }
+
+                    if (ordered > 0 && unordered > 0) {
+                        messager.printMessage(Diagnostic.Kind.ERROR, "It seems you've started to use @Order in " + tl.getQualifiedName().toString() + ". You must use @Order on each fields.");
+                    }
+
                     System.out.println("Adding files for " + tl.getSimpleName().toString() + "...");
                     List<FluderFile> files = fluder.generate(tl.getSimpleName().toString(), candidates);
                     for (FluderFile file : files) {

@@ -1,19 +1,34 @@
 package fr.tokazio.fluder.processor;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * https://dzone.com/articles/fluent-builder-pattern
  */
 public class Fluder {
 
-    public List<FluderFile> generate(String simpleClassName, List<FluderCandidate> candidates) {
+    public List<FluderFile> generate(String simpleClassName, List<FluderCandidate> candidatesOrg) {
+
+        Collections.sort(candidatesOrg, new Comparator<FluderCandidate>() {
+            @Override
+            public int compare(FluderCandidate o1, FluderCandidate o2) {
+                return Integer.compare(o1.order(), o2.order());
+            }
+        });
+
+        final List<FluderCandidate> requiredCandidates = new LinkedList<>();
+        final List<FluderCandidate> optionalCandidates = new LinkedList<>();
+        for (FluderCandidate c : candidatesOrg) {
+            if (!c.isOptional()) {
+                requiredCandidates.add(c);
+            } else {
+                optionalCandidates.add(c);
+            }
+        }
 
         final List<FluderFile> files = new LinkedList<>();
         //generate intermediate intf
-        Iterator<FluderCandidate> it = candidates.iterator();
+        Iterator<FluderCandidate> it = requiredCandidates.iterator();
         FluderCandidate candidate = it.next();
         while (it.hasNext()) {
             if (!candidate.isOptional()) {
@@ -46,10 +61,8 @@ public class Fluder {
         sbCreator.append("package ").append(candidate.pckName()).append(";\n\n");
         final String intfName = simpleClassName + "Creator";
         sbCreator.append("public interface ").append(intfName).append("{\n");
-        for (FluderCandidate c : candidates) {
-            if (c.isOptional()) {
-                sbCreator.append("\t").append(intfName).append(" set").append(candidate.setterName()).append("(").append(candidate.setterType()).append(" in);").append("\n\n");
-            }
+        for (FluderCandidate c : optionalCandidates) {
+            sbCreator.append("\t").append(intfName).append(" set").append(c.setterName()).append("(").append(c.setterType()).append(" in);").append("\n\n");
         }
         final String build = simpleClassName + " build();";
         sbCreator.append("\t").append(build).append("\n");
@@ -60,21 +73,27 @@ public class Fluder {
         final StringBuilder builderStr = new StringBuilder();
         builderStr.append("package ").append(candidate.pckName()).append(";\n\n");
         builderStr.append("public class ").append(simpleClassName).append("Builder implements ");
-        final Iterator<FluderCandidate> itImpl = candidates.iterator();
+        final Iterator<FluderCandidate> itImpl = requiredCandidates.iterator();
         while (itImpl.hasNext()) {
             final FluderCandidate c = itImpl.next();
             builderStr.append(c.intfName()).append(", ");
         }
         builderStr.append(simpleClassName).append("Creator");
         builderStr.append("{\n\n");
-        for (FluderCandidate c : candidates) {
+        //fields
+        for (FluderCandidate c : requiredCandidates) {
             builderStr.append("\tprivate ").append(c.fieldSignature()).append(";\n");
+        }
+        for (FluderCandidate c : optionalCandidates) {
+            builderStr.append("\tprivate ").append(c.fieldSignature()).append(";\n");
+            builderStr.append("\tprivate boolean ").append(c.fieldName()).append("Setted;\n");
+
         }
         builderStr.append("\n\tprivate ").append(simpleClassName).append("Builder(){\n")
                 .append("\t\tsuper();\n")
                 .append("\t}\n\n");
         //implements setters
-        final Iterator<FluderCandidate> itImplSet = candidates.iterator();
+        final Iterator<FluderCandidate> itImplSet = requiredCandidates.iterator();
         FluderCandidate c = itImplSet.next();
         while (itImplSet.hasNext()) {
             FluderCandidate next = itImplSet.next();
@@ -92,33 +111,63 @@ public class Fluder {
         builderStr.append("\t\tthis.").append(c.fieldName()).append(" = in;\n");
         builderStr.append("\t\treturn this;\n")
                 .append("\t}\n\n");
+        //optionals in Creator
+        for (FluderCandidate cOpt : optionalCandidates) {
+            builderStr.append("\t@Override\n")
+                    .append("\tpublic ").append(simpleClassName).append("Creator").append(" set").append(cOpt.setterName()).append("(").append(cOpt.setterType()).append(" in){\n");
+            builderStr.append("\t\tthis.").append(cOpt.fieldName()).append(" = in;\n");
+            builderStr.append("\t\tthis.").append(cOpt.fieldName()).append("Setted = true;\n");
+            builderStr.append("\t\treturn this;\n")
+                    .append("\t}\n\n");
+        }
         //implements build
         builderStr.append("\t@Override\n")
                 .append("\tpublic ").append(simpleClassName).append(" build(){\n")
                 .append("\t\tfinal ").append(simpleClassName).append(" out = new ").append(simpleClassName).append("();\n");
-        for (FluderCandidate cf : candidates) {
-            if (!cf.isPrivate()) {
-                builderStr.append("\t\tout.").append(cf.fieldName()).append("=").append(cf.fieldName()).append(";\n");
-            } else {
-                builderStr.append("\t\ttry {\n")
-                        .append("\t\t\tfinal java.lang.reflect.Field f = " + simpleClassName + ".class.getDeclaredField(\"" + cf.fieldName() + "\")").append(";\n")
-                        .append("\t\t\tf.setAccessible(true);\n")
-                        .append("\t\t\tf.set(out," + cf.fieldName() + ");\n")
-                        .append("\t\t} catch (NoSuchFieldException | IllegalAccessException e) {\n")
-                        .append("\t\t\te.printStackTrace();\n")
-                        .append("\t\t}\n");
-            }
+        for (FluderCandidate cf : requiredCandidates) {
+            candidateAssignInBuild(simpleClassName, builderStr, cf);
+        }
+        for (FluderCandidate cf : optionalCandidates) {
+            candidateAssignInBuild(simpleClassName, builderStr, cf);
         }
         builderStr.append("\t\treturn out;\n")
                 .append("\t}\n\n");
 
         //
-        builderStr.append("\tpublic static ").append(candidates.get(0).intfName()).append(" getInstance(){\n").append("\t\treturn new ").append(simpleClassName).append("Builder();\n")
+        builderStr.append("\tpublic static ").append(requiredCandidates.get(0).intfName()).append(" getInstance(){\n").append("\t\treturn new ").append(simpleClassName).append("Builder();\n")
                 .append("\t}\n");
         builderStr.append("}");
         System.out.println(builderStr.toString());
         files.add(new FluderFile(simpleClassName + "Builder", builderStr.toString()));
         return files;
+    }
+
+    private void candidateAssignInBuild(String simpleClassName, StringBuilder builderStr, FluderCandidate cf) {
+        String value = cf.fieldName();
+        if (cf.isOptional()) {
+            if (cf.defaultValue() != null && !cf.defaultValue().equals("\0")) {
+                value = "(" + cf.fieldName() + "Setted ? " + value + " : " + cf.defaultValue() + ")";
+            } else {
+                builderStr.append("\t\tif(" + cf.fieldName() + "Setted){\n");
+            }
+        }
+        if (!cf.isPrivate()) {
+            builderStr.append("\t\tout.").append(cf.fieldName()).append("=").append(value).append(";\n");
+        } else {
+            builderStr.append("\t\ttry {\n")
+                    .append("\t\t\tfinal java.lang.reflect.Field f = " + simpleClassName + ".class.getDeclaredField(\"" + cf.fieldName() + "\")").append(";\n")
+                    .append("\t\t\tf.setAccessible(true);\n")
+                    .append("\t\t\tf.set(out," + value + ");\n")
+                    .append("\t\t} catch (NoSuchFieldException | IllegalAccessException e) {\n")
+                    .append("\t\t\te.printStackTrace();\n")
+                    .append("\t\t}\n");
+        }
+        if (cf.defaultValue() != null && !cf.defaultValue().equals("\0")) {
+//nothing
+        } else {
+            builderStr.append("\t\t}\n");
+        }
+
     }
 
 

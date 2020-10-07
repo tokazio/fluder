@@ -6,13 +6,21 @@ public class FluderCandidate {
     private final String className;
     private final String packageName;
     private final boolean optional;
+    private final String defaultValue;
+    private final int order;
 
-    public FluderCandidate(String className, FluderField field, boolean optional) {
+    public FluderCandidate(String className, FluderField field, boolean optional, String defaultValue, int order) {
         final int index = className.lastIndexOf('.');
         this.packageName = className.substring(0, index);
         this.className = className.substring(index + 1);
         this.field = field;
         this.optional = optional;
+        this.defaultValue = defaultValue;
+        this.order = order;
+    }
+
+    public String defaultValue() {
+        return defaultValue;
     }
 
     public boolean isOptional() {
@@ -51,5 +59,9 @@ public class FluderCandidate {
 
     public boolean isPrivate() {
         return field.isPrivate();
+    }
+
+    public int order() {
+        return order;
     }
 }
