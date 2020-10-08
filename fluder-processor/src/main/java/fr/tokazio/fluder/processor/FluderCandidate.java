@@ -1,5 +1,7 @@
 package fr.tokazio.fluder.processor;
 
+import fr.tokazio.fluder.annotations.Buildable;
+
 public class FluderCandidate {
 
     public static final String PREPEND_INTERFACE_NAME = "";
@@ -10,10 +12,14 @@ public class FluderCandidate {
     private final String defaultValue;
     private final int order;
     private final boolean isNonnull;
+    private final Buildable buildable;
+    private final String name;
 
-    public FluderCandidate(final String simpleClassName, final FluderField field, final boolean optional, final String defaultValue, final int order, final boolean isNonnull) {
+    public FluderCandidate(final Buildable buildable, final String simpleClassName, final FluderField field, final String name, final boolean optional, final String defaultValue, final int order, final boolean isNonnull) {
+        this.buildable = buildable;
         this.simpleClassName = simpleClassName;
         this.field = field;
+        this.name = name;
         this.optional = optional;
         this.defaultValue = defaultValue;
         this.order = order;
@@ -47,7 +53,7 @@ public class FluderCandidate {
     }
 
     public String intfName() {
-        return PREPEND_INTERFACE_NAME + simpleClassName + firstUpper(field.getName());
+        return buildable.intermediatePrefix() + simpleClassName + firstUpper(field.getName());
     }
 
     public String setterType() {
@@ -56,7 +62,7 @@ public class FluderCandidate {
 
 
     public String setterName() {
-        return firstUpper(field.getName());
+        return firstUpper(name.isEmpty() ? field.getName() : name);
     }
 
 

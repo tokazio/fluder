@@ -1,5 +1,7 @@
 package fr.tokazio.fluder.processor;
 
+import fr.tokazio.fluder.annotations.Buildable;
+
 import java.util.*;
 
 /**
@@ -7,11 +9,13 @@ import java.util.*;
  */
 public class Fluder {
 
+    private Buildable buildable;
     private final List<FluderCandidate> requiredCandidates = new LinkedList<>();
     private final List<FluderCandidate> optionalCandidates = new LinkedList<>();
     private final List<FluderFile> files = new LinkedList<>();
 
-    public List<FluderFile> generate(final String packageName, final String simpleClassName, final boolean noArgCtorIsPrivate, final List<FluderCandidate> candidatesOrg) {
+    public List<FluderFile> generate(final Buildable buildable, final String packageName, final String simpleClassName, final boolean noArgCtorIsPrivate, final List<FluderCandidate> candidatesOrg) {
+        this.buildable = buildable;
         orderCandidates(candidatesOrg);
         sortRequiredAndOptionalCandidates(candidatesOrg);
         generateRequiredInterfaces(packageName, simpleClassName);
@@ -38,18 +42,18 @@ public class Fluder {
     }
 
     private String builderName(final String simpleClassName) {
-        return simpleClassName + "Builder";
+        return simpleClassName + buildable.builderName();
     }
 
     private void generateBuilderSingleton(final StringBuilder sb, final String builderName) {
-        sb.append("\tpublic static ").append(requiredCandidates.get(0).intfName()).append(" getInstance(){\n")
+        sb.append("\tpublic static ").append(requiredCandidates.get(0).intfName()).append(" ").append(buildable.instanceMethodName()).append("(){\n")
                 .append("\t\treturn new ").append(builderName).append("();\n")
                 .append("\t}");
     }
 
     private void generateBuilderBuildMethod(final StringBuilder sb, final String simpleClassName, final boolean noArgCtorIsPrivate) {
         sb.append("\t@Override\n")
-                .append("\tpublic ").append(simpleClassName).append(" build(){\n");
+                .append("\tpublic ").append(simpleClassName).append(" " + buildable.buildMethodName() + "(){\n");
         if (!noArgCtorIsPrivate) {
             sb.append("\t\tfinal ").append(simpleClassName).append(" out = new ").append(simpleClassName).append("();\n");
         } else {
@@ -85,7 +89,7 @@ public class Fluder {
                 .append("\tpublic ").append(typeName).append(" set").append(candidate.setterName()).append("(").append(candidate.setterType()).append(" in){\n");
         if (candidate.isNonnull()) {
             sb.append("\t\tif(in==null){\n")
-                    .append("\t\t\tthrow new IllegalArgumentException(\"set" + candidate.setterName() + " can't be called with a null parameter. The target field is marked as @Nonnull\");\n")
+                    .append("\t\t\tthrow new IllegalArgumentException(\"set").append(candidate.setterName()).append(" can't be called with a null parameter. The target field is marked as @Nonnull\");\n")
                     .append("\t\t}\n");
         }
         sb.append("\t\tthis.").append(candidate.fieldName()).append(" = in;\n");
@@ -109,14 +113,14 @@ public class Fluder {
     }
 
     private void generateBuilderCtor(final StringBuilder sb, final String simpleClassName) {
-        sb.append("\n\tprivate ").append(simpleClassName).append("Builder(){\n")
+        sb.append("\n\tprivate ").append(builderName(simpleClassName)).append("(){\n")
                 .append("\t\tsuper();\n")
                 .append("\t}\n\n");
     }
 
     private void generateBuilderFields(final StringBuilder sb) {
         for (FluderCandidate c : requiredCandidates) {
-            sb.append("\tprivate " + (c.isNonnull() ? "@javax.annotation.Nonnull " : "")).append(c.fieldSignature()).append(";\n");
+            sb.append("\tprivate ").append(c.isNonnull() ? "@javax.annotation.Nonnull " : "").append(c.fieldSignature()).append(";\n");
         }
         for (FluderCandidate c : optionalCandidates) {
             sb.append("\tprivate ").append(c.fieldSignature()).append(";\n");
@@ -128,7 +132,7 @@ public class Fluder {
         for (FluderCandidate requiredCandidate : requiredCandidates) {
             sb.append(requiredCandidate.intfName()).append(", ");
         }
-        sb.append(simpleClassName).append("Creator");
+        sb.append(creatorName(simpleClassName));
     }
 
     private void generateCreatorInterface(final String packageName, final String simpleClassName) {
@@ -143,7 +147,7 @@ public class Fluder {
     }
 
     private void generateCreatorBuildMethod(final StringBuilder sb, final String simpleClassName) {
-        sb.append("\t").append(simpleClassName).append(" build();\n");
+        sb.append("\t").append(simpleClassName).append(" ").append(buildable.buildMethodName()).append("();\n");
     }
 
     private void generateCreatorSettersForOptionalCandidates(final StringBuilder sb, final String creatorName) {
@@ -168,7 +172,7 @@ public class Fluder {
     }
 
     private String creatorName(final String simpleClassName) {
-        return simpleClassName + "Creator";
+        return simpleClassName + buildable.creatorName();
     }
 
     private void generateRequiredInterface(final String packageName, final String simpleClassName, final String intfName, final FluderCandidate candidate) {

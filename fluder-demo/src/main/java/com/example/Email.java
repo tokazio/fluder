@@ -1,15 +1,16 @@
 package com.example;
 
 import fr.tokazio.fluder.annotations.Buildable;
+import fr.tokazio.fluder.annotations.Ignore;
 import fr.tokazio.fluder.annotations.Optional;
 import fr.tokazio.fluder.annotations.Order;
 
 import javax.annotation.Nonnull;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 @Buildable
 public class Email {
-
 
     @Nonnull
     @Order(0)
@@ -25,6 +26,9 @@ public class Email {
     String cc;
     @Order(1)
     private String from;
+
+    @Ignore
+    private Date date;
 
     transient Object notInBuilder;
 }
