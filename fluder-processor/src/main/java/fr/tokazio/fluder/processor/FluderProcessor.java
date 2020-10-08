@@ -13,9 +13,11 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,12 +29,44 @@ public class FluderProcessor extends AbstractProcessor {
 
     private Messager messager;
 
+    private final List<ValidationAnnotation> validationAnnotations = new LinkedList<>();
+
     private static boolean isNonPublic(Element e) {
         return !e.getModifiers().contains(Modifier.PUBLIC);
     }
 
+    private void initValidationAnnotations() {
+        if (validationAnnotations.isEmpty()) {
+            validationAnnotations.add(new ValidationAnnotation(Nonnull.class) {
+                @Override
+                public void javaCode(final StringBuilder sb, final FluderCandidate candidate) {
+                    sb.append("\t\tif(in==null){\n")
+                            .append("\t\t\tthrow new IllegalArgumentException(\"set").append(candidate.setterName()).append(" can't be called with a null parameter. The target field is marked as @Nonnull\");\n")
+                            .append("\t\t}\n");
+                }
+            });
+            validationAnnotations.add(new ValidationAnnotation(NotNull.class) {
+                @Override
+                public void javaCode(final StringBuilder sb, final FluderCandidate candidate) {
+                    sb.append("\t\tif(in==null){\n")
+                            .append("\t\t\tthrow new IllegalArgumentException(\"set").append(candidate.setterName()).append(" can't be called with a null parameter. The target field is marked as @NotNull\");\n")
+                            .append("\t\t}\n");
+                }
+            });
+            validationAnnotations.add(new ValidationAnnotation(NotEmpty.class) {
+                @Override
+                public void javaCode(final StringBuilder sb, final FluderCandidate candidate) {
+                    sb.append("\t\tif(in.isEmpty()){\n")
+                            .append("\t\t\tthrow new IllegalArgumentException(\"set").append(candidate.setterName()).append(" can't be called with an empty parameter. The target field is marked as @Empty\");\n")
+                            .append("\t\t}\n");
+                }
+            });
+        }
+    }
+
     @Override
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
+        initValidationAnnotations();
         messager = processingEnv.getMessager();
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
@@ -109,14 +143,10 @@ public class FluderProcessor extends AbstractProcessor {
                             } else {
                                 ordered.add(ve);
                             }
-                            Nonnull nonnull = ve.getAnnotation(Nonnull.class);
-                            NotNull notnull = ve.getAnnotation(NotNull.class);
 
-                            //TODO
-                            //handle javax.validation.constraints (beanValidation)
+                            final List<Validation> resultValidation = processValidationAnnotations(ve);
 
-                            note("\t'" + ve.getSimpleName().toString() + "' is a '" + ve.asType().toString() + "' " + (isNonPublic(ve) ? "non public" : "") + " field " + (opt != null ? "@Optional" : "") + " " + (order != null ? "@Order(" + order.value() + ")" : "") + " " + (nonnull != null ? "@Nonnull" : "") + " " + (notnull != null ? "@NotNull" : ""));
-                            FluderCandidate candidate = new FluderCandidate(buildable, tl.getSimpleName().toString(), new FluderField() {
+                            final FluderCandidate candidate = new FluderCandidate(buildable, tl.getSimpleName().toString(), new FluderField() {
                                 @Override
                                 public String getTypeName() {
                                     return ve.asType().toString();
@@ -131,7 +161,7 @@ public class FluderProcessor extends AbstractProcessor {
                                 public boolean isNonPublic() {
                                     return FluderProcessor.isNonPublic(ve);
                                 }
-                            }, name != null ? name.value() : "", opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1, nonnull != null || notnull != null);
+                            }, name != null ? name.value() : "", opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1, resultValidation);//nonnull != null || notnull != null);
 
                             note("\tA fluent builder will be generated for " + candidate);
                             candidates.add(candidate);
@@ -164,6 +194,19 @@ public class FluderProcessor extends AbstractProcessor {
             }
         }
         return true;
+    }
+
+
+    private List<Validation> processValidationAnnotations(Element el) {
+        final List<Validation> out = new LinkedList<>();
+        //TODO handle others javax.validation.constraints (beanValidation)
+        for (ValidationAnnotation va : validationAnnotations) {
+            Annotation a = va.getAnnotationFrom(el);
+            if (a != null) {
+                out.add(new Validation(a, va));
+            }
+        }
+        return out;
     }
 
     private boolean isFinal(Element e) {

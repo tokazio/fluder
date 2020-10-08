@@ -117,10 +117,8 @@ public class Fluder {
     private void generateBuilderSetter(final StringBuilder sb, final String typeName, final FluderCandidate candidate) {
         sb.append("\t@Override\n")
                 .append("\tpublic ").append(typeName).append(" set").append(candidate.setterName()).append("(").append(candidate.setterType()).append(" in){\n");
-        if (candidate.isNonnull()) {
-            sb.append("\t\tif(in==null){\n")
-                    .append("\t\t\tthrow new IllegalArgumentException(\"set").append(candidate.setterName()).append(" can't be called with a null parameter. The target field is marked as @Nonnull\");\n")
-                    .append("\t\t}\n");
+        for (Validation va : candidate.validations()) {
+            va.validate(sb, candidate);
         }
         sb.append("\t\tthis.").append(candidate.fieldName()).append(" = in;\n");
         if (candidate.isOptional()) {
@@ -150,7 +148,8 @@ public class Fluder {
 
     private void generateBuilderFields(final StringBuilder sb) {
         for (FluderCandidate c : requiredCandidates) {
-            sb.append("\tprivate ").append(c.isNonnull() ? "@javax.annotation.Nonnull " : "").append(c.fieldSignature()).append(";\n");
+            //TODO replicate annotations from target field ? the validations ones ? .append(c.isNonnull() ? "@javax.annotation.Nonnull " : "")
+            sb.append("\tprivate ").append(c.fieldSignature()).append(";\n");
         }
         for (FluderCandidate c : optionalCandidates) {
             sb.append("\tprivate ").append(c.fieldSignature()).append(";\n");

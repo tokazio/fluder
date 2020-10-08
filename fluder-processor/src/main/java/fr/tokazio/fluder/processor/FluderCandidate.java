@@ -2,6 +2,9 @@ package fr.tokazio.fluder.processor;
 
 import fr.tokazio.fluder.annotations.Buildable;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class FluderCandidate {
 
     public static final String PREPEND_INTERFACE_NAME = "";
@@ -11,11 +14,12 @@ public class FluderCandidate {
     private final boolean optional;
     private final String defaultValue;
     private final int order;
-    private final boolean isNonnull;
+    // private final boolean isNonnull;
     private final Buildable buildable;
     private final String name;
+    private final List<Validation> validations = new LinkedList<>();
 
-    public FluderCandidate(final Buildable buildable, final String simpleClassName, final FluderField field, final String name, final boolean optional, final String defaultValue, final int order, final boolean isNonnull) {
+    public FluderCandidate(final Buildable buildable, final String simpleClassName, final FluderField field, final String name, final boolean optional, final String defaultValue, final int order, final List<Validation> validations) {
         this.buildable = buildable;
         this.simpleClassName = simpleClassName;
         this.field = field;
@@ -23,12 +27,15 @@ public class FluderCandidate {
         this.optional = optional;
         this.defaultValue = defaultValue;
         this.order = order;
-        this.isNonnull = isNonnull;
+        this.validations.addAll(validations);
     }
 
+    /*
     public boolean isNonnull() {
         return isNonnull;
     }
+
+     */
 
     public static String firstUpper(final String str) {
         return str == null | str.isEmpty() ? "" : str.substring(0, 1).toUpperCase() + str.substring(1);
@@ -68,11 +75,9 @@ public class FluderCandidate {
         return field.getTypeName();
     }
 
-
     public String setterName() {
         return firstUpper(name.isEmpty() ? field.getName() : name);
     }
-
 
     public String fieldSignature() {
         return field.getTypeName() + " " + field.getName();
@@ -88,5 +93,9 @@ public class FluderCandidate {
 
     public int order() {
         return order;
+    }
+
+    public List<Validation> validations() {
+        return validations;
     }
 }
