@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FluderTest {
 
     @Test
-    public void testEmail() {
+    public void testEmailRequired() {
         //given
         EmailCreator builder = EmailBuilder.getInstance()
                 .setTo("to")
@@ -24,6 +24,52 @@ public class FluderTest {
         Email actual = builder.build();
 
         //then
-        assertThat(actual).extracting("to", "from", "subject", "content", "bcc").contains("to", "from", "subject", "content", "bcc-default");
+        assertThat(actual).extracting("to", "from", "subject", "content", "bcc")
+                .contains("to", "from", "subject", "content", "bcc-default");
     }
+
+    @Test
+    public void testEmailWithOptionnal() {
+        //given
+        EmailCreator builder = EmailBuilder.getInstance()
+                .setTo("to")
+                .setFrom("from")
+                .setSubject("subject")
+                .setContent("content")
+                .setBcc("bcc")
+                .setCc("cc");
+        //when
+        Email actual = builder.build();
+
+        //then
+        assertThat(actual).extracting("to", "from", "subject", "content", "bcc", "cc")
+                .contains("to", "from", "subject", "content", "bcc", "cc");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testEmailWhenToIsNull() {
+        //given
+        EmailCreator builder = EmailBuilder.getInstance()
+                .setTo(null)
+                .setFrom("from")
+                .setSubject("subject")
+                .setContent("content");
+        //when
+        Email actual = builder.build();
+
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testEmailWhenSubjectIsNull() {
+        //given
+        EmailCreator builder = EmailBuilder.getInstance()
+                .setTo("to")
+                .setFrom("from")
+                .setSubject(null)
+                .setContent("content");
+        //when
+        Email actual = builder.build();
+
+    }
+
 }

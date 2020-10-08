@@ -1,9 +1,5 @@
 apply plugin: 'maven-publish'
 
-dependencies {
-    implementation  project (':fluder-annotations')
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {

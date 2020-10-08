@@ -4,8 +4,14 @@ repositories {
 }
 
 dependencies {
-    compile group: 'fr.tokazio', name: 'fluder-processor', version: '1.0-SNAPSHOT'
+    compile group: 'fr.tokazio', name: 'fluder-annotations', version: '1.0-SNAPSHOT'
+
     annotationProcessor group: 'fr.tokazio', name: 'fluder-processor', version: '1.0-SNAPSHOT'
     annotationProcessor group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    annotationProcessor group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+
+    compile group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.1'
+
     annotationProcessor group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.1'
 }

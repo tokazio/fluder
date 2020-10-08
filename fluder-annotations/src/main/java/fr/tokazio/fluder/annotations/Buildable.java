@@ -1,4 +1,4 @@
-package fr.tokazio.fluder.processor;
+package fr.tokazio.fluder.annotations;
 
 import java.lang.annotation.*;
 

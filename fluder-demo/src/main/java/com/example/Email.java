@@ -1,10 +1,11 @@
 package com.example;
 
-import fr.tokazio.fluder.processor.Buildable;
-import fr.tokazio.fluder.processor.Optional;
-import fr.tokazio.fluder.processor.Order;
+import fr.tokazio.fluder.annotations.Buildable;
+import fr.tokazio.fluder.annotations.Optional;
+import fr.tokazio.fluder.annotations.Order;
 
 import javax.annotation.Nonnull;
+import javax.validation.constraints.NotNull;
 
 @Buildable
 public class Email {
@@ -13,6 +14,7 @@ public class Email {
     @Nonnull
     @Order(0)
     String to;
+    @NotNull
     @Order(2)
     String subject;
     @Order(3)
