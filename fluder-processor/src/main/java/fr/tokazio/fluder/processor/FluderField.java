@@ -6,5 +6,5 @@ public interface FluderField {
 
     String getName();
 
-    boolean isPrivate();
+    boolean isNonPublic();
 }

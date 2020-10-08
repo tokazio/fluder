@@ -9,6 +9,15 @@ See https://dzone.com/articles/fluent-builder-pattern
 ### @Buildable
 Mark a class for wich you want a fluent builder to be generated.
 
+### @Group
+Not allready implemented
+
+### @Ignore
+Ignore the field
+
+### @Name
+Rename the setter, setContent can be transformed to setBody with @Name("body") on the 'content' field.
+
 ### @Optional
 An @Optional field can be defined in any order (after the required fields).
 You can give a default value via @Optional or the one defined at the field initialisation will be kept.
@@ -23,7 +32,7 @@ Transient/final fields are ignored.
 ### non public
 The builder use reflection API to build a private field
 
-### private constructor
+### non public constructor
 When you make a builder, you generally hide the possibility to instanciate the target object without this Builder.
 Then the private constructor is accessed via the reflection API.
 
@@ -34,12 +43,14 @@ This Email
 @Buildable
 public class Email {
 
-
+    @Nonnull
     @Order(0)
     String to;
+    @NotNull
     @Order(2)
     String subject;
     @Order(3)
+    @Name("body")
     String content;
     @Optional("\"bcc-default\"")
     String bcc;
@@ -47,6 +58,9 @@ public class Email {
     String cc;
     @Order(1)
     private String from;
+
+    @Ignore
+    private Date date;
 
     transient Object notInBuilder;
 
@@ -62,7 +76,7 @@ Email email = EmailBuilder.getInstance()
                 .setTo("to")
                 .setFrom("from")
                 .setSubject("subject")
-                .setContent("content")
+                .setBody("content")
                 //.setBcc("bcc")
                 //.setCc("cc")
                 .build();

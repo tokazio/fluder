@@ -14,17 +14,17 @@ public class Fluder {
     private final List<FluderCandidate> optionalCandidates = new LinkedList<>();
     private final List<FluderFile> files = new LinkedList<>();
 
-    public List<FluderFile> generate(final Buildable buildable, final String packageName, final String simpleClassName, final boolean noArgCtorIsPrivate, final List<FluderCandidate> candidatesOrg) {
+    public List<FluderFile> generate(final Buildable buildable, final String packageName, final String simpleClassName, final boolean noArgCtorIsNonPublic, final List<FluderCandidate> candidatesOrg) {
         this.buildable = buildable;
         orderCandidates(candidatesOrg);
         sortRequiredAndOptionalCandidates(candidatesOrg);
         generateRequiredInterfaces(packageName, simpleClassName);
         generateCreatorInterface(packageName, simpleClassName);
-        generateBuilderClass(packageName, simpleClassName, noArgCtorIsPrivate);
+        generateBuilderClass(packageName, simpleClassName, noArgCtorIsNonPublic);
         return files;
     }
 
-    private void generateBuilderClass(final String packageName, final String simpleClassName, final boolean noArgCtorIsPrivate) {
+    private void generateBuilderClass(final String packageName, final String simpleClassName, final boolean noArgCtorIsNonPublic) {
         final StringBuilder sb = new StringBuilder();
         sb.append("package ").append(packageName).append(";\n\n");
         final String builderName = builderName(simpleClassName);
@@ -35,7 +35,7 @@ public class Fluder {
         generateBuilderCtor(sb, simpleClassName);
         generateBuilderSettersImplementations(sb, simpleClassName);
         generateBuilderOptionalSettersImplementations(sb, simpleClassName);
-        generateBuilderBuildMethod(sb, simpleClassName, noArgCtorIsPrivate);
+        generateBuilderBuildMethod(sb, simpleClassName, noArgCtorIsNonPublic);
         generateBuilderSingleton(sb, builderName);
         sb.append("\n}");
         files.add(new FluderFile(builderName, sb.toString()));
@@ -51,10 +51,10 @@ public class Fluder {
                 .append("\t}");
     }
 
-    private void generateBuilderBuildMethod(final StringBuilder sb, final String simpleClassName, final boolean noArgCtorIsPrivate) {
+    private void generateBuilderBuildMethod(final StringBuilder sb, final String simpleClassName, final boolean noArgCtorIsNonPublic) {
         sb.append("\t@Override\n")
                 .append("\tpublic ").append(simpleClassName).append(" " + buildable.buildMethodName() + "(){\n");
-        if (!noArgCtorIsPrivate) {
+        if (!noArgCtorIsNonPublic) {
             sb.append("\t\tfinal ").append(simpleClassName).append(" out = new ").append(simpleClassName).append("();\n");
         } else {
             sb.append("\t\t" + simpleClassName + " out = null;\n")

@@ -46,7 +46,7 @@ public class FluderCandidate {
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append(simpleClassName).append("::").append(field.getName())
-                .append(" ").append(isPrivate() ? "(private) " : "")
+                .append(" ").append(isPrivate() ? "(non public) " : "")
                 .append(isOptional() ? "@Optional" + (!defaultValue.equals("\0") ? "(" + defaultValue + ") " : " ") : "")
                 .append(order >= 0 ? "@Order(" + order + ") " : " ");
         return sb.toString();
@@ -75,7 +75,7 @@ public class FluderCandidate {
     }
 
     public boolean isPrivate() {
-        return field.isPrivate();
+        return field.isNonPublic();
     }
 
     public int order() {

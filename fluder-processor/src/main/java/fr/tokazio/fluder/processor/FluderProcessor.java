@@ -21,34 +21,40 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-//@SupportedAnnotationTypes("*")
-//@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class FluderProcessor extends AbstractProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FluderProcessor.class);
-    private final Fluder fluder = new Fluder();
+
     private Messager messager;
+
+    private static boolean isNonPublic(Element e) {
+        return !e.getModifiers().contains(Modifier.PUBLIC);
+    }
 
     @Override
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-        final List<Element> ordered = new LinkedList<>();
-        final List<Element> unordered = new LinkedList<>();
         messager = processingEnv.getMessager();
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
             note("FluderProcessor is processing @Buildable annotations...");
             for (Element el : annotatedElements) {
+                final Fluder fluder = new Fluder();
+                final List<Element> ordered = new LinkedList<>();
+                final List<Element> unordered = new LinkedList<>();
+                Buildable buildable = el.getAnnotation(Buildable.class);
+                if (buildable == null) {
+                    continue;
+                }
                 if (el.getKind() != ElementKind.CLASS) {
                     error("@Buildable can only be applied to class.");
                     return true;
                 }
-                Buildable buildable = el.getAnnotation(Buildable.class);
                 if (el instanceof TypeElement) {
                     TypeElement tl = (TypeElement) el;
                     note("@Buildable processing class " + tl.getQualifiedName().toString() + "...");
                     final String packageName = tl.getQualifiedName().toString().substring(0, tl.getQualifiedName().toString().lastIndexOf('.'));
                     final List<FluderCandidate> candidates = new LinkedList<>();
-                    boolean noArgCtorIsPrivate = false;
+                    boolean noArgCtorIsNotPublic = false;
                     for (Element inCl : tl.getEnclosedElements()) {
                         note("* Found element '" + inCl.getSimpleName().toString() + "' in " + tl.getQualifiedName().toString());
                         if (inCl instanceof ExecutableElement) {
@@ -58,8 +64,8 @@ public class FluderProcessor extends AbstractProcessor {
                                     error("\t'" + tl.getQualifiedName().toString() + "' needs a no arg constructor in order to FluderProcessor be able to generate a fluent builder");
                                     return true;
                                 }
-                                if (isPrivate(xe)) {
-                                    noArgCtorIsPrivate = true;
+                                if (isNonPublic(xe)) {
+                                    noArgCtorIsNotPublic = true;
                                     note("\t'" + tl.getQualifiedName().toString() + "' constructor is private");
                                     continue;
                                 }
@@ -99,9 +105,11 @@ public class FluderProcessor extends AbstractProcessor {
                                 //-> il devrait être ordered si il y a au moin un autre ordered
                                 if (opt == null || isTransient(ve)) {
                                     unordered.add(ve);
+                                    note(ve.getSimpleName() + " is unordered");
                                 }
                             } else {
                                 ordered.add(ve);
+                                note(ve.getSimpleName() + " is @Order");
                             }
                             Nonnull nonnull = ve.getAnnotation(Nonnull.class);
                             NotNull notnull = ve.getAnnotation(NotNull.class);
@@ -109,7 +117,7 @@ public class FluderProcessor extends AbstractProcessor {
                             //TODO
                             //handle javax.validation.constraints (beanValidation)
 
-                            note("\t'" + ve.getSimpleName().toString() + "' is a '" + ve.asType().toString() + "' " + (ve.getModifiers().contains(Modifier.PRIVATE) ? "private" : "") + " field " + (opt != null ? "@Optional" : "") + " " + (order != null ? "@Order(" + order.value() + ")" : "") + " " + (nonnull != null ? "@Nonnull" : "") + " " + (notnull != null ? "@NotNull" : ""));
+                            note("\t'" + ve.getSimpleName().toString() + "' is a '" + ve.asType().toString() + "' " + (isNonPublic(ve) ? "non public" : "") + " field " + (opt != null ? "@Optional" : "") + " " + (order != null ? "@Order(" + order.value() + ")" : "") + " " + (nonnull != null ? "@Nonnull" : "") + " " + (notnull != null ? "@NotNull" : ""));
                             FluderCandidate candidate = new FluderCandidate(buildable, tl.getSimpleName().toString(), new FluderField() {
                                 @Override
                                 public String getTypeName() {
@@ -122,8 +130,8 @@ public class FluderProcessor extends AbstractProcessor {
                                 }
 
                                 @Override
-                                public boolean isPrivate() {
-                                    return ve.getModifiers().contains(Modifier.PRIVATE);
+                                public boolean isNonPublic() {
+                                    return FluderProcessor.isNonPublic(ve);
                                 }
                             }, name != null ? name.value() : "", opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1, nonnull != null || notnull != null);
 
@@ -135,6 +143,8 @@ public class FluderProcessor extends AbstractProcessor {
                         }
                     }
 
+                    note(ordered.size() + " " + unordered.size());
+
                     if (!ordered.isEmpty() && !unordered.isEmpty()) {
                         error("It seems you've started to use @Order in " + tl.getQualifiedName().toString() + ". You must use @Order on each: non transient / @Ignore / non @Optional fields.");
                         for (Element e : unordered) {
@@ -143,7 +153,7 @@ public class FluderProcessor extends AbstractProcessor {
                     }
 
                     final String simpleClassName = tl.getSimpleName().toString();
-                    List<FluderFile> files = fluder.generate(buildable, packageName, simpleClassName, noArgCtorIsPrivate, candidates);
+                    List<FluderFile> files = fluder.generate(buildable, packageName, simpleClassName, noArgCtorIsNotPublic, candidates);
                     note("FluderProcessor generation report for " + tl.getQualifiedName().toString() + ":");
                     for (FluderFile file : files) {
                         try {
@@ -157,10 +167,6 @@ public class FluderProcessor extends AbstractProcessor {
             }
         }
         return true;
-    }
-
-    private boolean isPrivate(Element e) {
-        return e.getModifiers().contains(Modifier.PRIVATE);
     }
 
     private boolean isFinal(Element e) {

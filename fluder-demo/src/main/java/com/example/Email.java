@@ -29,4 +29,9 @@ public class Email {
     private Date date;
 
     transient Object notInBuilder;
+
+    //Hide me forcing the builder usage
+    private Email() {
+        super();
+    }
 }
