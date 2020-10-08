@@ -1,9 +1,6 @@
 package com.example;
 
-import fr.tokazio.fluder.annotations.Buildable;
-import fr.tokazio.fluder.annotations.Ignore;
-import fr.tokazio.fluder.annotations.Optional;
-import fr.tokazio.fluder.annotations.Order;
+import fr.tokazio.fluder.annotations.*;
 
 import javax.annotation.Nonnull;
 import javax.validation.constraints.NotNull;
@@ -19,6 +16,7 @@ public class Email {
     @Order(2)
     String subject;
     @Order(3)
+    @Name("body")
     String content;
     @Optional("\"bcc-default\"")
     String bcc;

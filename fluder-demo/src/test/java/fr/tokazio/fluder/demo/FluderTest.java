@@ -16,7 +16,7 @@ public class FluderTest {
                 .setTo("to")
                 .setFrom("from")
                 .setSubject("subject")
-                .setContent("content")
+                .setBody("content")
                 //.setBcc("bcc")
                 //.setCc("cc")
                 ;
@@ -35,7 +35,7 @@ public class FluderTest {
                 .setTo("to")
                 .setFrom("from")
                 .setSubject("subject")
-                .setContent("content")
+                .setBody("content")
                 .setBcc("bcc")
                 .setCc("cc");
         //when
@@ -53,7 +53,7 @@ public class FluderTest {
                 .setTo(null)
                 .setFrom("from")
                 .setSubject("subject")
-                .setContent("content");
+                .setBody("content");
         //when
         Email actual = builder.build();
 
@@ -66,7 +66,7 @@ public class FluderTest {
                 .setTo("to")
                 .setFrom("from")
                 .setSubject(null)
-                .setContent("content");
+                .setBody("content");
         //when
         Email actual = builder.build();
 
