@@ -31,7 +31,11 @@ public class FluderCandidate {
     }
 
     public static String firstUpper(final String str) {
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
+        return str == null | str.isEmpty() ? "" : str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    public static String firstLower(final String str) {
+        return str == null || str.isEmpty() ? "" : str.substring(0, 1).toLowerCase() + str.substring(1);
     }
 
     public String defaultValue() {
@@ -53,7 +57,11 @@ public class FluderCandidate {
     }
 
     public String intfName() {
-        return buildable.intermediatePrefix() + simpleClassName + firstUpper(field.getName());
+        return prefix() + simpleClassName + firstUpper(field.getName());
+    }
+
+    private String prefix() {
+        return firstUpper(buildable.intermediatePrefix());
     }
 
     public String setterType() {

@@ -7,9 +7,9 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Buildable {
 
-    String builderName() default "Builder";
+    String builderName() default "$Builder";
 
-    String creatorName() default "Creator";
+    String creatorName() default "$Creator";
 
     String intermediatePrefix() default "";
 

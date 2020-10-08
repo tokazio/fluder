@@ -9,8 +9,35 @@ See https://dzone.com/articles/fluent-builder-pattern
 ### @Buildable
 Mark a class for wich you want a fluent builder to be generated.
 
+#### Parameters
+
+##### builderName
+Change the generated builder class name.
+Empty actually use the target class name appending 'Builder' to it.
+Remember that's a class name, the first letter will be upper case.
+You can use '$' that will be replaced by the target class name.
+      
+##### creatorName
+Change the generated creator class name.
+Empty actually use the target class name appending 'Creator' to it.
+Remember that's a class name, the first letter will be upper case.
+You can use '$' that will be replaced by the target class name.
+      
+##### intermediatePrefix default ""
+For the chaining, FluderProcessor generating multiple intermediate interfaces.
+This can put a prefix behind these interfaces.
+Remember that's an interface name, the first letter will be upper case.
+      
+##### buildMethodName default "build"
+Change the finisher 'build()' call to your own.    
+Remember that's a method name, the first letter will be lower case.
+      
+##### instanceMethodName default "getInstance"
+Change the initial 'getInstance' call to your own.
+Remember that's a method name, the first letter will be lower case.
+
 ### @Group
-Not allready implemented
+Not already implemented
 
 ### @Ignore
 Ignore the field

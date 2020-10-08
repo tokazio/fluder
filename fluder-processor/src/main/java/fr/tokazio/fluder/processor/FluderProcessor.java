@@ -105,11 +105,9 @@ public class FluderProcessor extends AbstractProcessor {
                                 //-> il devrait être ordered si il y a au moin un autre ordered
                                 if (opt == null || isTransient(ve)) {
                                     unordered.add(ve);
-                                    note(ve.getSimpleName() + " is unordered");
                                 }
                             } else {
                                 ordered.add(ve);
-                                note(ve.getSimpleName() + " is @Order");
                             }
                             Nonnull nonnull = ve.getAnnotation(Nonnull.class);
                             NotNull notnull = ve.getAnnotation(NotNull.class);
@@ -143,8 +141,7 @@ public class FluderProcessor extends AbstractProcessor {
                         }
                     }
 
-                    note(ordered.size() + " " + unordered.size());
-
+                    //all or nothing required fields ordered
                     if (!ordered.isEmpty() && !unordered.isEmpty()) {
                         error("It seems you've started to use @Order in " + tl.getQualifiedName().toString() + ". You must use @Order on each: non transient / @Ignore / non @Optional fields.");
                         for (Element e : unordered) {
