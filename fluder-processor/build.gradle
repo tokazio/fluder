@@ -8,8 +8,8 @@ publishing {
     repositories {
         maven {
             credentials {
-                username "$privateRepoUser"
-                password "$privateRepoPass"
+                username privateRepoUser
+                password privateRepoPass
             }
             url privateRepoUrl
         }
