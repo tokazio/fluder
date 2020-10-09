@@ -8,7 +8,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
+    types: [opened, synchronize, reopened]
 jobs:
   build:
 
@@ -41,7 +41,7 @@ jobs:
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          run: ./gradlew build sonarqube --info
+      run: ./gradlew build sonarqube --info
     - name: Publish with Gradle
       env:
         PRIVATEREPOURL: ${{ secrets.PRIVATEREPOURL }}
