@@ -29,7 +29,7 @@ jobs:
         PRIVATEREPOPASS: ${{ secrets.PRIVATEREPOPASS }}
     - name: Build with Gradle
       run: |
-        echo '${{ secrets.PRIVATEREPOURL }}' >> $PRIVATEREPOURL
-        echo '${{ secrets.PRIVATEREPOUSER }}' >> $PRIVATEREPOUSER
-        echo '${{ secrets.PRIVATEREPOPASS }}' >> $PRIVATEREPOPASS
+        export PRIVATEREPOURL = ${{ secrets.PRIVATEREPOURL }}
+        export PRIVATEREPOUSER = ${{ secrets.PRIVATEREPOUSER }}
+        export PRIVATEREPOPASS = ${{ secrets.PRIVATEREPOPASS }}
         ./gradlew build publish
