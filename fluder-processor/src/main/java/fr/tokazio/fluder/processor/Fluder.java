@@ -191,17 +191,17 @@ public class Fluder {
         while (it.hasNext()) {
             if (!candidate.isOptional()) {
                 final FluderCandidate next = it.next();
-                generateRequiredInterface(packageName, simpleClassName, next.intfName(), candidate);
+                generateRequiredInterface(packageName, next.intfName(), candidate);
                 candidate = next;
             } else {
                 candidate = it.next();
             }
         }
-        generateRequiredInterface(packageName, simpleClassName, creatorName(simpleClassName), candidate);
+        generateRequiredInterface(packageName, creatorName(simpleClassName), candidate);
     }
 
 
-    private void generateRequiredInterface(final String packageName, final String simpleClassName, final String intfName, final FluderCandidate candidate) {
+    private void generateRequiredInterface(final String packageName, final String intfName, final FluderCandidate candidate) {
         final StringBuilder sb = new StringBuilder();
         sb.append("package ").append(packageName).append(";\n\n");
         sb.append("public interface ").append(candidate.intfName()).append("{\n");
