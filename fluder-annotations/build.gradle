@@ -3,8 +3,11 @@ apply plugin: 'maven-publish'
 publishing {
     repositories {
         maven {
+            credentials {
+                username "$privateRepoUser"
+                password "$privateRepoPass"
+            }
             url privateRepoUrl
-            authentication(userName: privateRepoUser, password: privateRepoPass)
         }
     }
     publications {

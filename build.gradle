@@ -11,9 +11,10 @@ subprojects {
     targetCompatibility = 1.7
 
     repositories {
+        mavenLocal()
         mavenCentral()
         maven {
-            url 'https://mymavenrepo.com/repo/IwNlOBbZiDtlg65DCbh7/'
+            url privateRepoUrl
         }
     }
 
