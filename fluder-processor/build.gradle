@@ -5,6 +5,11 @@ dependencies {
 }
 
 publishing {
+    repositories {
+        maven {
+            url privateRepoUrl
+        }
+    }
     publications {
         mavenJava(MavenPublication) {
             from components.java
