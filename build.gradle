@@ -12,6 +12,9 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven {
+            url : 'https://mymavenrepo.com/repo/IwNlOBbZiDtlg65DCbh7/'
+        }
     }
 
     dependencies {
