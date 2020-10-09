@@ -11,7 +11,7 @@ publishing {
                 username System.getenv('PRIVATEREPOUSER')
                 password System.getenv('PRIVATEREPOPASS')
             }
-            url System.getenv('PRIVATEREPOURL')
+            url = System.getenv('PRIVATEREPOURL')
         }
     }
     publications {
