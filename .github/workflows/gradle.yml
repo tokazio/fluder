@@ -23,13 +23,9 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - uses: secrethub/actions/env-export@v0.1.0
+    - name: Build with Gradle
       env:
         PRIVATEREPOURL: ${{ secrets.PRIVATEREPOURL }}
         PRIVATEREPOUSER: ${{ secrets.PRIVATEREPOUSER }}
         PRIVATEREPOPASS: ${{ secrets.PRIVATEREPOPASS }}
-    - name: Build with Gradle
-      run: |
-        export PRIVATEREPOURL = ${{ secrets.PRIVATEREPOURL }}
-        export PRIVATEREPOUSER = ${{ secrets.PRIVATEREPOUSER }}
-        export PRIVATEREPOPASS = ${{ secrets.PRIVATEREPOPASS }}
-        ./gradlew build publish
+      run: ./gradlew build publish
