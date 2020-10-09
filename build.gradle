@@ -1,5 +1,13 @@
 allprojects {
     apply plugin: 'idea'
+
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://mymavenrepo.com/repo/IwNlOBbZiDtlg65DCbh7/'
+        }
+    }
+
 }
 
 subprojects {
@@ -10,13 +18,6 @@ subprojects {
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven {
-            url privateRepoUrl
-        }
-    }
 
     dependencies {
         compile group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.1'

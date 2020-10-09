@@ -7,6 +7,10 @@ dependencies {
 publishing {
     repositories {
         maven {
+            credentials {
+                username "$privateRepoUser"
+                password "$privateRepoPass"
+            }
             url privateRepoUrl
         }
     }
