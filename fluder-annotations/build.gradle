@@ -4,10 +4,10 @@ publishing {
     repositories {
         maven {
             credentials {
-                username "$privateRepoUser"
-                password "$privateRepoPass"
+                username System.getenv('PRIVATEREPOUSER')
+                password System.getenv('PRIVATEREPOPASS')
             }
-            url privateRepoUrl
+            url System.getenv('PRIVATEREPOURL')
         }
     }
     publications {
