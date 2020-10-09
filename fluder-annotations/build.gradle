@@ -1,6 +1,11 @@
 apply plugin: 'maven-publish'
 
 publishing {
+    repositories {
+        maven {
+            url privateRepoUrl
+        }
+    }
     publications {
         mavenJava(MavenPublication) {
             from components.java
