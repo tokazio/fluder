@@ -7,7 +7,7 @@ publishing {
                 username "$privateRepoUser"
                 password "$privateRepoPass"
             }
-            url "$privateRepoUrl"
+            url privateRepoUrl
         }
     }
     publications {
