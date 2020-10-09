@@ -4,10 +4,10 @@ publishing {
     repositories {
         maven {
             credentials {
-                username project.properties['privateRepoUser']
-                password project.properties['privateRepoPass']
+                username "$privateRepoUser"
+                password "$privateRepoPass"
             }
-            url project.properties['privateRepoUrl']
+            url "$privateRepoUrl"
         }
     }
     publications {
