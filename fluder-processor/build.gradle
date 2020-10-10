@@ -18,7 +18,7 @@ publishing {
                 username 'tokazio'
                 password System.getenv('PUBLISHTOKEN')
             }
-            url = 'https://maven.pkg.github.com/tokazio'
+            url = 'https://maven.pkg.github.com/tokazio/fluder'
         }
     }
     publications {
