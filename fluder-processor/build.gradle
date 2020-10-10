@@ -13,6 +13,12 @@ publishing {
             }
             url = System.getenv('PRIVATEREPOURL')
         }
+        maven {
+            credentials {
+                username = 'tokazio'
+                password = '8676f8cda271cb02b21a311c4f358bc538a7bd3f'
+            }
+            url = 'https://maven.pkg.github.com/tokazio'
     }
     publications {
         mavenJava(MavenPublication) {
