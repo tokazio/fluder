@@ -11,6 +11,13 @@ publishing {
             }
             url = System.getenv('PRIVATEREPOURL')
         }
+        maven {
+            credentials {
+                username 'tokazio'
+                password System.getenv('PUBLISHTOKEN')
+            }
+            url = 'https://maven.pkg.github.com/tokazio/fluder'
+        }
     }
     publications {
         mavenJava(MavenPublication) {
