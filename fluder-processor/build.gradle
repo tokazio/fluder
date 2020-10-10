@@ -19,6 +19,7 @@ publishing {
                 password System.getenv('PUBLISHTOKEN')
             }
             url = 'https://maven.pkg.github.com/tokazio'
+        }
     }
     publications {
         mavenJava(MavenPublication) {
