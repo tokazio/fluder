@@ -16,7 +16,7 @@ publishing {
         maven {
             credentials {
                 username = 'tokazio'
-                password = '8676f8cda271cb02b21a311c4f358bc538a7bd3f'
+                password = System.getenv('PUBLISHTOKEN')
             }
             url = 'https://maven.pkg.github.com/tokazio'
     }
