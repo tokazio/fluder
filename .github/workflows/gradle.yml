@@ -47,4 +47,5 @@ jobs:
         PRIVATEREPOURL: ${{ secrets.PRIVATEREPOURL }}
         PRIVATEREPOUSER: ${{ secrets.PRIVATEREPOUSER }}
         PRIVATEREPOPASS: ${{ secrets.PRIVATEREPOPASS }}
+        PUBLISHTOKEN: ${{ secrets.PUBLISHTOKEN }}
       run: ./gradlew publish 
