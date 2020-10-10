@@ -1,8 +1,6 @@
 apply plugin: 'maven-publish'
 
 publishing {
-    println 'Username: '+System.getenv('PRIVATEREPOUSER')
-    println 'Url: '+System.getenv('PRIVATEREPOURL')
     repositories {
         maven {
             credentials {
