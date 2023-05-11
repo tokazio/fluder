@@ -42,12 +42,14 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: ./gradlew build sonarqube --info
-      #- name: Publish with Gradle
-      #  env:
+    - name: Publish with Gradle
+      env:
+        GITHUB_ACTOR: Tokazio
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
       #    PRIVATEREPOURL: ${{ secrets.PRIVATEREPOURL }}
       #    PRIVATEREPOUSER: ${{ secrets.PRIVATEREPOUSER }}
       #    PRIVATEREPOPASS: ${{ secrets.PRIVATEREPOPASS }}
       #    PUBLISHTOKEN: ${{ secrets.PUBLISHTOKEN }}
-      #  run: ./gradlew publish
+      run: ./gradlew publish
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
