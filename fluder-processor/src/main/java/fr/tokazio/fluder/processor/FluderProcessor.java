@@ -181,19 +181,23 @@ public class FluderProcessor extends AbstractProcessor {
 
                     final String simpleClassName = tl.getSimpleName().toString();
                     List<FluderFile> files = fluder.generate(buildable, packageName, simpleClassName, noArgCtorIsNotPublic, candidates);
-                    note("FluderProcessor generation report for " + tl.getQualifiedName().toString() + ":");
-                    for (FluderFile file : files) {
-                        try {
-                            final JavaFileObject javaFile = writeClassFile(packageName + ".", file.name(), file.javaCode());
-                            note("\t* " + packageName + "." + file.name() + " generated (" + javaFile.getName() + ")");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    generateFiles(tl, packageName, files);
                 }
             }
         }
         return true;
+    }
+
+    private void generateFiles(final TypeElement tl, final String packageName, final List<FluderFile> files) {
+        note("FluderProcessor generation report for " + tl.getQualifiedName().toString() + ":");
+        for (FluderFile file : files) {
+            try {
+                final JavaFileObject javaFile = writeClassFile(packageName + ".", file.name(), file.javaCode());
+                note("\t* " + packageName + "." + file.name() + " generated (" + javaFile.getName() + ")");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
