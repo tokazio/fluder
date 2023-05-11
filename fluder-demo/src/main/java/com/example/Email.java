@@ -3,6 +3,7 @@ package com.example;
 import fr.tokazio.fluder.annotations.*;
 
 import javax.annotation.Nonnull;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
@@ -23,6 +24,7 @@ public class Email {
     @Optional
     String cc;
     @Order(1)
+    @NotEmpty
     private String from;
 
     @Ignore
