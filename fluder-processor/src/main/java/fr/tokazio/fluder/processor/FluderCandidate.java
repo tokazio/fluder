@@ -38,7 +38,7 @@ public class FluderCandidate {
      */
 
     public static String firstUpper(final String str) {
-        return str == null | str.isEmpty() ? "" : str.substring(0, 1).toUpperCase() + str.substring(1);
+        return str == null || str.isEmpty() ? "" : str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
     public static String firstLower(final String str) {
@@ -55,12 +55,11 @@ public class FluderCandidate {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(simpleClassName).append("::").append(field.getName())
-                .append(" ").append(isPrivate() ? "(non public) " : "")
-                .append(isOptional() ? "@Optional" + (!defaultValue.equals("\0") ? "(" + defaultValue + ") " : " ") : "")
-                .append(order >= 0 ? "@Order(" + order + ") " : " ");
-        return sb.toString();
+        String sb = simpleClassName + "::" + field.getName() +
+                " " + (isPrivate() ? "(non public) " : "") +
+                (isOptional() ? "@Optional" + (!defaultValue.equals("\0") ? "(" + defaultValue + ") " : " ") : "") +
+                (order >= 0 ? "@Order(" + order + ") " : " ");
+        return sb;
     }
 
     public String intfName() {

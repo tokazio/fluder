@@ -100,7 +100,7 @@ public class FluderProcessor extends AbstractProcessor {
                                 }
                                 if (isNonPublic(xe)) {
                                     noArgCtorIsNotPublic = true;
-                                    note("\t'" + tl.getQualifiedName().toString() + "' constructor is private");
+                                    warn("\t'" + tl.getQualifiedName().toString() + "' constructor is private");
                                     continue;
                                 }
                             }
@@ -125,7 +125,7 @@ public class FluderProcessor extends AbstractProcessor {
 
                             //TODO implementation
                             if (group != null) {
-                                warn("@Group nor allready supported");
+                                warn("@Group not already supported");
                             }
 
                             Name name = ve.getAnnotation(Name.class);
@@ -195,7 +195,7 @@ public class FluderProcessor extends AbstractProcessor {
                 final JavaFileObject javaFile = writeClassFile(packageName + ".", file.name(), file.javaCode());
                 note("\t* " + packageName + "." + file.name() + " generated (" + javaFile.getName() + ")");
             } catch (IOException e) {
-                e.printStackTrace();
+                error(e.getClass().getName() + "::" + e.getMessage());
             }
         }
     }
@@ -203,7 +203,7 @@ public class FluderProcessor extends AbstractProcessor {
 
     private List<Validation> processValidationAnnotations(Element el) {
         final List<Validation> out = new LinkedList<>();
-        //TODO handle others javax.validation.constraints (beanValidation)
+        //TODO handle others javax.validation.constraints (beanValidation) via spi
         for (ValidationAnnotation va : validationAnnotations) {
             Annotation a = va.getAnnotationFrom(el);
             if (a != null) {
