@@ -1,21 +1,23 @@
 apply plugin: 'maven-publish'
 
 publishing {
+
     repositories {
         maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/tokazio/fluder"
             credentials {
-                username System.getenv('PRIVATEREPOUSER')
-                password System.getenv('PRIVATEREPOPASS')
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
-            url = System.getenv('PRIVATEREPOURL')
         }
-        maven {
-            credentials {
-                username 'tokazio'
-                password System.getenv('PUBLISHTOKEN')
-            }
-            url = 'https://maven.pkg.github.com/tokazio/fluder'
-        }
+//        maven {
+//            credentials {
+//                username 'tokazio'
+//                password System.getenv('PUBLISHTOKEN')
+//            }
+//            url = 'https://maven.pkg.github.com/tokazio/fluder'
+//        }
     }
     publications {
         mavenJava(MavenPublication) {
