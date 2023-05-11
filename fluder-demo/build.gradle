@@ -1,3 +1,12 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "1.8.21"
+    id 'org.jetbrains.kotlin.plugin.noarg' version "1.8.21"
+}
+
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'org.jetbrains.kotlin.plugin.noarg'
+apply plugin: 'kotlin-kapt'
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -5,6 +14,8 @@ repositories {
 
 dependencies {
     compileOnly group: 'fr.tokazio', name: 'fluder-annotations', version: '1.0-SNAPSHOT'
+
+    kapt group: 'fr.tokazio', name: 'fluder-processor', version: '1.0-SNAPSHOT'
 
     annotationProcessor group: 'fr.tokazio', name: 'fluder-processor', version: '1.0-SNAPSHOT'
     annotationProcessor group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
@@ -14,4 +25,28 @@ dependencies {
     compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.1'
 
     annotationProcessor group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.1'
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs += '-Xemit-jvm-type-annotations'
+        freeCompilerArgs += '-Xjvm-default=all'
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs += '-Xemit-jvm-type-annotations'
+        freeCompilerArgs += '-Xjvm-default=all'
+    }
+}
+
+kapt {
+//  useBuildCache = false
+//  generateStubs = false
+//  includeCompileClasspath = false
+//  showProcessorStats = true
+    keepJavacAnnotationProcessors = true
 }
