@@ -241,7 +241,7 @@ public class FluderProcessor extends AbstractProcessor {
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.RELEASE_7;
+        return SourceVersion.RELEASE_8;
     }
 
     private JavaFileObject writeClassFile(final String path, final String className, final String javaCode) throws IOException {
