@@ -1,7 +1,15 @@
 apply plugin: 'maven-publish'
 
 dependencies {
-    implementation  project (':fluder-annotations')
+    implementation project(':fluder-annotations')
+
+    testImplementation 'com.google.guava:guava:20.0'
+    testImplementation 'com.google.truth:truth:0.30'
+    testImplementation 'com.google.testing.compile:compile-testing:0.10'
+
+    testImplementation group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.1'
+    testImplementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    testImplementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
 }
 
 publishing {
