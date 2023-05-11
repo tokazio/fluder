@@ -49,3 +49,5 @@ jobs:
         PRIVATEREPOPASS: ${{ secrets.PRIVATEREPOPASS }}
         PUBLISHTOKEN: ${{ secrets.PUBLISHTOKEN }}
       run: ./gradlew publish 
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
