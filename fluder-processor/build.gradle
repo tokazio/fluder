@@ -29,8 +29,8 @@ publishing {
 //            }
 //            url = 'https://maven.pkg.github.com/tokazio/fluder'
 //        }
-
     }
+
     publications {
         mavenJava(MavenPublication) {
             from components.java
