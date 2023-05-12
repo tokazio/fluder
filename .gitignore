@@ -1,6 +1,6 @@
 /.gradle/
 /.idea/
 /build/
-/fluder-demo/build/
-/fluder-processor/build/
-/fluder-annotations/build/
+/fluderJavaGenerator-demo/build/
+/fluderJavaGenerator-processor/build/
+/fluderJavaGenerator-annotations/build/

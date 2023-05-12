@@ -1,4 +1,4 @@
-package fr.tokazio.fluder.processor;
+package fr.tokazio.fluder.core;
 
 public class FluderFile {
 
@@ -10,11 +10,11 @@ public class FluderFile {
         this.javaCode = javaCode;
     }
 
-    public String name() {
+    public String getName() {
         return name;
     }
 
-    public String javaCode() {
+    public String getJavaCode() {
         return javaCode;
     }
 }

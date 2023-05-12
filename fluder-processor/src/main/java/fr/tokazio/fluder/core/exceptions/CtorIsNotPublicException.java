@@ -1,4 +1,4 @@
-package fr.tokazio.fluder.processor;
+package fr.tokazio.fluder.core.exceptions;
 
 public class CtorIsNotPublicException extends FluderProcessorException {
     public CtorIsNotPublicException(String msg) {

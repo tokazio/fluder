@@ -1,6 +1,4 @@
-package fr.tokazio.fluder.processor;
-
-import fr.tokazio.fluder.annotations.Buildable;
+package fr.tokazio.fluder.core;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,17 +8,15 @@ public class FluderCandidate {
     public static final String PREPEND_INTERFACE_NAME = "";
 
     private final FluderField field;
-    private final String simpleClassName;
     private final boolean optional;
     private final String defaultValue;
     private final int order;
-    private final Buildable buildable;
+    private final FluderClass fluderClass;
     private final String name;
     private final List<Validation> validations = new LinkedList<>();
 
     public FluderCandidate(
-            final Buildable buildable,
-            final String simpleClassName,
+            final FluderClass fluderClass,
             final FluderField field,
             final String name,
             final boolean optional,
@@ -28,8 +24,7 @@ public class FluderCandidate {
             final int order,
             final List<Validation> validations
     ) {
-        this.buildable = buildable;
-        this.simpleClassName = simpleClassName;
+        this.fluderClass = fluderClass;
         this.field = field;
         this.name = name;
         this.optional = optional;
@@ -38,13 +33,7 @@ public class FluderCandidate {
         this.validations.addAll(validations);
     }
 
-    public static String firstUpper(final String str) {
-        return str == null || str.isEmpty() ? "" : str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
 
-    public static String firstLower(final String str) {
-        return str == null || str.isEmpty() ? "" : str.substring(0, 1).toLowerCase() + str.substring(1);
-    }
 
     public String defaultValue() {
         return defaultValue;
@@ -56,7 +45,7 @@ public class FluderCandidate {
 
     @Override
     public String toString() {
-        return simpleClassName + "::" + field.getName() +
+        return fluderClass.getSimpleName() + "::" + field.getSimpleName() +
                 " " + (isPrivate() ? "(non public) " : "") +
                 (isOptional() ? "@Optional" + defaultVal() : "") +
                 (order >= 0 ? "@Order(" + order + ") " : " ");
@@ -67,11 +56,11 @@ public class FluderCandidate {
     }
 
     public String intfName() {
-        return prefix() + simpleClassName + firstUpper(field.getName());
+        return prefix() + fluderClass.getSimpleName() + FluderUtils.firstUpper(field.getSimpleName());
     }
 
     private String prefix() {
-        return firstUpper(buildable.intermediatePrefix());
+        return FluderUtils.firstUpper(fluderClass.buildable().intermediatePrefix());
     }
 
     public String setterType() {
@@ -79,15 +68,15 @@ public class FluderCandidate {
     }
 
     public String setterName() {
-        return firstUpper(name.isEmpty() ? field.getName() : name);
+        return FluderUtils.firstUpper(name.isEmpty() ? field.getSimpleName() : name);
     }
 
     public String fieldSignature() {
-        return field.getTypeName() + " " + field.getName();
+        return field.getTypeName() + " " + field.getSimpleName();
     }
 
     public String fieldName() {
-        return field.getName();
+        return field.getSimpleName();
     }
 
     public boolean isPrivate() {

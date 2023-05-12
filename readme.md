@@ -1,6 +1,6 @@
 # Fluder
 
-[![Java CI with Gradle, Sonar and Codecov](https://github.com/tokazio/fluder/actions/workflows/gradle.yml/badge.svg)](https://github.com/tokazio/fluder/actions/workflows/gradle.yml)
+[![Java CI with Gradle, Sonar and Codecov](https://github.com/tokazio/fluderJavaGenerator/actions/workflows/gradle.yml/badge.svg)](https://github.com/tokazio/fluderJavaGenerator/actions/workflows/gradle.yml)
 [![CodeScene Code Health](https://codescene.io/projects/39222/status-badges/code-health)](https://codescene.io/projects/39222)
 [![CodeScene System Mastery](https://codescene.io/projects/39222/status-badges/system-mastery)](https://codescene.io/projects/39222)
 
