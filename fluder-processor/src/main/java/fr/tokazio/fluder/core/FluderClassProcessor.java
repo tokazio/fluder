@@ -34,8 +34,8 @@ public class FluderClassProcessor {
     }
 
     private void generateFile(final FluderClass fluderClass){
-        final FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
-        List<FluderFile> files = fluderJavaGenerator.generate(fluderClass);
+        final FluderCodeGenerator fludercodeGenerator = new FluderJavaGenerator();
+        List<FluderFile> files = fludercodeGenerator.generate(fluderClass);
         generateFiles(fluderClass, files);
     }
 

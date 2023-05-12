@@ -8,13 +8,14 @@ import java.util.*;
 /**
  * https://dzone.com/articles/fluent-builder-pattern
  */
-public class FluderJavaGenerator {
+public class FluderJavaGenerator implements FluderCodeGenerator {
 
     private Buildable buildable;
     private final List<FluderCandidate> requiredCandidates = new LinkedList<>();
     private final List<FluderCandidate> optionalCandidates = new LinkedList<>();
     private final List<FluderFile> files = new LinkedList<>();
 
+    @Override
     public List<FluderFile> generate(final FluderClass fluderClass) {
         this.buildable = fluderClass.buildable();
         final List<FluderCandidate> orderedCandidates = orderCandidates(fluderClass.getCandidates());
