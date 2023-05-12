@@ -8,7 +8,7 @@ public abstract class ValidationAnnotation {
     private final Class<? extends java.lang.annotation.Annotation> clazz;
     private java.lang.annotation.Annotation annotation;
 
-    public ValidationAnnotation(final Class<? extends java.lang.annotation.Annotation> clazz) {
+    protected ValidationAnnotation(final Class<? extends java.lang.annotation.Annotation> clazz) {
         this.clazz = clazz;
     }
 

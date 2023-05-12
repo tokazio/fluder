@@ -14,12 +14,20 @@ public class FluderCandidate {
     private final boolean optional;
     private final String defaultValue;
     private final int order;
-    // private final boolean isNonnull;
     private final Buildable buildable;
     private final String name;
     private final List<Validation> validations = new LinkedList<>();
 
-    public FluderCandidate(final Buildable buildable, final String simpleClassName, final FluderField field, final String name, final boolean optional, final String defaultValue, final int order, final List<Validation> validations) {
+    public FluderCandidate(
+            final Buildable buildable,
+            final String simpleClassName,
+            final FluderField field,
+            final String name,
+            final boolean optional,
+            final String defaultValue,
+            final int order,
+            final List<Validation> validations
+    ) {
         this.buildable = buildable;
         this.simpleClassName = simpleClassName;
         this.field = field;
@@ -29,13 +37,6 @@ public class FluderCandidate {
         this.order = order;
         this.validations.addAll(validations);
     }
-
-    /*
-    public boolean isNonnull() {
-        return isNonnull;
-    }
-
-     */
 
     public static String firstUpper(final String str) {
         return str == null || str.isEmpty() ? "" : str.substring(0, 1).toUpperCase() + str.substring(1);
@@ -55,11 +56,14 @@ public class FluderCandidate {
 
     @Override
     public String toString() {
-        String sb = simpleClassName + "::" + field.getName() +
+        return simpleClassName + "::" + field.getName() +
                 " " + (isPrivate() ? "(non public) " : "") +
-                (isOptional() ? "@Optional" + (!defaultValue.equals("\0") ? "(" + defaultValue + ") " : " ") : "") +
+                (isOptional() ? "@Optional" + defaultVal() : "") +
                 (order >= 0 ? "@Order(" + order + ") " : " ");
-        return sb;
+    }
+
+    private String defaultVal() {
+        return !defaultValue.equals("\0") ? "(" + defaultValue + ") " : " ";
     }
 
     public String intfName() {

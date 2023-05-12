@@ -2,7 +2,10 @@ package fr.tokazio.fluder.processor;
 
 import fr.tokazio.fluder.annotations.Buildable;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import static fr.tokazio.fluder.processor.FluderCandidate.firstLower;
 import static fr.tokazio.fluder.processor.FluderCandidate.firstUpper;
@@ -202,12 +205,11 @@ public class Fluder {
 
 
     private void generateRequiredInterface(final String packageName, final String intfName, final FluderCandidate candidate) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("package ").append(packageName).append(";\n\n");
-        sb.append("public interface ").append(candidate.intfName()).append("{\n");
-        sb.append("\t").append(intfName).append(" set").append(candidate.setterName()).append("(").append(candidate.setterType()).append(" in);").append("\n");
-        sb.append("}");
-        files.add(new FluderFile(candidate.intfName(), sb.toString()));
+        String sb = "package " + packageName + ";\n\n" +
+                "public interface " + candidate.intfName() + "{\n" +
+                "\t" + intfName + " set" + candidate.setterName() + "(" + candidate.setterType() + " in);" + "\n" +
+                "}";
+        files.add(new FluderFile(candidate.intfName(), sb));
     }
 
     private void sortRequiredAndOptionalCandidates(final List<FluderCandidate> candidatesOrg) {
@@ -221,12 +223,7 @@ public class Fluder {
     }
 
     private void orderCandidates(final List<FluderCandidate> candidatesOrg) {
-        Collections.sort(candidatesOrg, new Comparator<FluderCandidate>() {
-            @Override
-            public int compare(FluderCandidate o1, FluderCandidate o2) {
-                return Integer.compare(o1.order(), o2.order());
-            }
-        });
+        candidatesOrg.sort(Comparator.comparingInt(FluderCandidate::order));
     }
 
     private void candidateAssignInBuild(final StringBuilder sb, final String simpleClassName, final FluderCandidate cf) {

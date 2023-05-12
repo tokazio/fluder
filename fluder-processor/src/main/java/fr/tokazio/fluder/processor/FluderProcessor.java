@@ -146,22 +146,31 @@ public class FluderProcessor extends AbstractProcessor {
 
                             final List<Validation> resultValidation = processValidationAnnotations(ve);
 
-                            final FluderCandidate candidate = new FluderCandidate(buildable, tl.getSimpleName().toString(), new FluderField() {
-                                @Override
-                                public String getTypeName() {
-                                    return ve.asType().toString();
-                                }
+                            final FluderCandidate candidate = new FluderCandidate(
+                                    buildable,
+                                    tl.getSimpleName().toString(),
+                                    new FluderField() {
+                                        @Override
+                                        public String getTypeName() {
+                                            return ve.asType().toString();
+                                        }
 
-                                @Override
-                                public String getName() {
-                                    return ve.getSimpleName().toString();
-                                }
+                                        @Override
+                                        public String getName() {
+                                            return ve.getSimpleName().toString();
+                                        }
 
-                                @Override
-                                public boolean isNonPublic() {
-                                    return FluderProcessor.isNonPublic(ve);
-                                }
-                            }, name != null ? name.value() : "", opt != null, opt != null ? opt.value() : "", order != null ? order.value() : -1, resultValidation);//nonnull != null || notnull != null);
+                                        @Override
+                                        public boolean isNonPublic() {
+                                            return FluderProcessor.isNonPublic(ve);
+                                        }
+                                    },
+                                    name != null ? name.value() : "",
+                                    opt != null,
+                                    opt != null ? opt.value() : "",
+                                    order != null ? order.value() : -1,
+                                    resultValidation
+                            );
 
                             note("\tA fluent builder will be generated for " + candidate);
                             candidates.add(candidate);
