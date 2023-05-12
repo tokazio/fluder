@@ -69,132 +69,159 @@ public class FluderProcessor extends AbstractProcessor {
         initValidationAnnotations();
         messager = processingEnv.getMessager();
         for (TypeElement annotation : annotations) {
-            Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
-            note("FluderProcessor is processing @Buildable annotations...");
-            for (Element el : annotatedElements) {
-                final Fluder fluder = new Fluder();
-                final List<Element> ordered = new LinkedList<>();
-                final List<Element> unordered = new LinkedList<>();
-                Buildable buildable = el.getAnnotation(Buildable.class);
+            processAnnotation(roundEnv, annotation);
+        }
+        return true;
+    }
+
+    private void processAnnotation(final RoundEnvironment roundEnv, final TypeElement annotation) {
+        final Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
+        note("FluderProcessor is processing @Buildable annotations...");
+        for (Element el : annotatedElements) {
+//            this is actually ensured by the @Buildable @Target(ElementType.TYPE)
+//            if (el.getKind() != ElementKind.CLASS) {
+//                error("@Buildable can only be applied to class.");
+//                return true;
+//            }
+            if (el instanceof TypeElement) {
+                final Buildable buildable = el.getAnnotation(Buildable.class);
                 if (buildable == null) {
                     continue;
                 }
-                if (el.getKind() != ElementKind.CLASS) {
-                    error("@Buildable can only be applied to class.");
-                    return true;
-                }
-                if (el instanceof TypeElement) {
-                    TypeElement tl = (TypeElement) el;
-                    note("@Buildable processing class " + tl.getQualifiedName().toString() + "...");
-                    final String packageName = tl.getQualifiedName().toString().substring(0, tl.getQualifiedName().toString().lastIndexOf('.'));
-                    final List<FluderCandidate> candidates = new LinkedList<>();
-                    boolean noArgCtorIsNotPublic = false;
-                    for (Element inCl : tl.getEnclosedElements()) {
-                        note("* Found element '" + inCl.getSimpleName().toString() + "' in " + tl.getQualifiedName().toString());
-                        if (inCl instanceof ExecutableElement) {
-                            final ExecutableElement xe = (ExecutableElement) inCl;
-                            if ("<init>".equals(xe.getSimpleName().toString())) {
-                                if (!xe.getParameters().isEmpty()) {
-                                    error("\t'" + tl.getQualifiedName().toString() + "' needs a no arg constructor in order to FluderProcessor be able to generate a fluent builder");
-                                    return true;
-                                }
-                                if (isNonPublic(xe)) {
-                                    noArgCtorIsNotPublic = true;
-                                    warn("\t'" + tl.getQualifiedName().toString() + "' constructor is private");
-                                    continue;
-                                }
-                            }
-                        }
-                        if (inCl instanceof VariableElement) {
-                            final VariableElement ve = (VariableElement) inCl;
-                            if (isTransient(ve)) {
-                                note("\t'" + ve.getSimpleName().toString() + "' is 'transient', FluderProcessor has ignored it");
-                                continue;
-                            }
-                            if (isFinal(ve)) {
-                                note("\t'" + ve.getSimpleName().toString() + "' is 'final', FluderProcessor has ignored it");
-                                continue;
-                            }
-                            Ignore ignore = ve.getAnnotation(Ignore.class);
-                            if (ignore != null) {
-                                note("\t'" + ve.getSimpleName().toString() + "' is annotated @Ignore, FluderProcessor has ignored it");
-                                continue;
-                            }
-
-                            Group group = ve.getAnnotation(Group.class);
-
-                            //TODO implementation
-                            if (group != null) {
-                                warn("@Group not already supported");
-                            }
-
-                            Name name = ve.getAnnotation(Name.class);
-                            Optional opt = ve.getAnnotation(Optional.class);
-                            Order order = ve.getAnnotation(Order.class);
-                            if (order == null) {//Pas ordered
-                                //dans ce cas si il n'est:
-                                //pas en option
-                                //pas ignoré
-                                //pas transient
-                                //-> il devrait être ordered si il y a au moin un autre ordered
-                                if (opt == null || isTransient(ve)) {
-                                    unordered.add(ve);
-                                }
-                            } else {
-                                ordered.add(ve);
-                            }
-
-                            final List<Validation> resultValidation = processValidationAnnotations(ve);
-
-                            final FluderCandidate candidate = new FluderCandidate(
-                                    buildable,
-                                    tl.getSimpleName().toString(),
-                                    new FluderField() {
-                                        @Override
-                                        public String getTypeName() {
-                                            return ve.asType().toString();
-                                        }
-
-                                        @Override
-                                        public String getName() {
-                                            return ve.getSimpleName().toString();
-                                        }
-
-                                        @Override
-                                        public boolean isNonPublic() {
-                                            return FluderProcessor.isNonPublic(ve);
-                                        }
-                                    },
-                                    name != null ? name.value() : "",
-                                    opt != null,
-                                    opt != null ? opt.value() : "",
-                                    order != null ? order.value() : -1,
-                                    resultValidation
-                            );
-
-                            note("\tA fluent builder will be generated for " + candidate);
-                            candidates.add(candidate);
-                        } else {
-                            note("\t" + inCl.getSimpleName().toString() + " is not a field.");
-                            note("\tFluderProcessor can't handle it at this time.");
-                        }
-                    }
-
-                    //all or nothing required fields ordered
-                    if (!ordered.isEmpty() && !unordered.isEmpty()) {
-                        error("It seems you've started to use @Order in " + tl.getQualifiedName().toString() + ". You must use @Order on each: non transient / @Ignore / non @Optional fields.");
-                        for (Element e : unordered) {
-                            error("Please put @Order on '" + tl.getQualifiedName() + "::" + e.getSimpleName() + "'");
-                        }
-                    }
-
-                    final String simpleClassName = tl.getSimpleName().toString();
-                    List<FluderFile> files = fluder.generate(buildable, packageName, simpleClassName, noArgCtorIsNotPublic, candidates);
-                    generateFiles(tl, packageName, files);
-                }
+                processBuildableClass((TypeElement) el, buildable);
             }
         }
-        return true;
+    }
+
+    private void processBuildableClass(final TypeElement tl, final Buildable buildable) {
+        note("@Buildable processing class " + tl.getQualifiedName().toString() + "...");
+        final Fluder fluder = new Fluder();
+        final List<Element> ordered = new LinkedList<>();
+        final List<Element> unordered = new LinkedList<>();
+        final String packageName = tl.getQualifiedName().toString().substring(0, tl.getQualifiedName().toString().lastIndexOf('.'));
+        final List<FluderCandidate> candidates = new LinkedList<>();
+        boolean noArgCtorIsNotPublic = false;
+        for (Element inCl : tl.getEnclosedElements()) {
+            note("* Found element '" + inCl.getSimpleName().toString() + "' in " + tl.getQualifiedName().toString());
+            if(inCl instanceof ExecutableElement){
+                try {
+                    processExecutableElement((ExecutableElement)inCl,tl.getQualifiedName().toString());
+                }catch (CtorIsNotPublicException ex){
+                    warn(ex.getMessage());
+                    noArgCtorIsNotPublic = true;
+                }catch (NoNoArgCtorException ex){
+                    error(ex.getMessage());
+                }
+            }else if (inCl instanceof VariableElement) {
+                try {
+                    processVariableElement((VariableElement) inCl,tl.getSimpleName().toString(),buildable, ordered, unordered, candidates);
+                }catch (IgnoreElementException ex){
+                    note(ex.getMessage());
+                }
+            } else {
+                note("\t" + inCl.getSimpleName().toString() + " is not a field.");
+                note("\tFluderProcessor can't handle it at this time.");
+            }
+        }
+
+        //all or nothing required fields ordered
+        if (!ordered.isEmpty() && !unordered.isEmpty()) {
+            error("It seems you've started to use @Order in " + tl.getQualifiedName().toString() + ". You must use @Order on each: non transient / @Ignore / non @Optional fields.");
+            for (Element e : unordered) {
+                error("Please put @Order on '" + tl.getQualifiedName() + "::" + e.getSimpleName() + "'");
+            }
+        }
+
+        final String simpleClassName = tl.getSimpleName().toString();
+        List<FluderFile> files = fluder.generate(buildable, packageName, simpleClassName, noArgCtorIsNotPublic, candidates);
+        generateFiles(tl, packageName, files);
+    }
+
+    private void processVariableElement(final VariableElement ve, final String buildableClassName, Buildable buildable, final List<Element> ordered, final List<Element> unordered, final List<FluderCandidate> candidates) throws IgnoreElementException {
+            if (isTransient(ve)) {
+                throw new IgnoreElementException("\t'" + ve.getSimpleName().toString() + "' is 'transient', FluderProcessor has ignored it");
+            }
+            if (isFinal(ve)) {
+                throw new IgnoreElementException("\t'" + ve.getSimpleName().toString() + "' is 'final', FluderProcessor has ignored it");
+            }
+            Ignore ignore = ve.getAnnotation(Ignore.class);
+            if (ignore != null) {
+                throw new IgnoreElementException("\t'" + ve.getSimpleName().toString() + "' is annotated @Ignore, FluderProcessor has ignored it");
+            }
+
+            Group group = ve.getAnnotation(Group.class);
+
+            //TODO implementation
+            if (group != null) {
+                warn("@Group not already supported");
+            }
+
+            fr.tokazio.fluder.annotations.Name name = ve.getAnnotation(Name.class);
+            Optional opt = ve.getAnnotation(Optional.class);
+            Order order = ve.getAnnotation(Order.class);
+            if (order == null) {//Pas ordered
+                //dans ce cas si il n'est:
+                //pas en option
+                //pas ignoré
+                //pas transient
+                //-> il devrait être ordered si il y a au moin un autre ordered
+                if (opt == null || isTransient(ve)) {
+                    unordered.add(ve);
+                }
+            } else {
+                ordered.add(ve);
+            }
+
+            final List<Validation> resultValidation = processValidationAnnotations(ve);
+
+            final FluderCandidate candidate = new FluderCandidate(
+                    buildable,
+                    buildableClassName,
+                    new FluderField() {
+                        @Override
+                        public String getTypeName() {
+                            return ve.asType().toString();
+                        }
+
+                        @Override
+                        public String getName() {
+                            return ve.getSimpleName().toString();
+                        }
+
+                        @Override
+                        public boolean isNonPublic() {
+                            return FluderProcessor.isNonPublic(ve);
+                        }
+                    },
+                    name != null ? name.value() : "",
+                    opt != null,
+                    opt != null ? opt.value() : "",
+                    order != null ? order.value() : -1,
+                    resultValidation
+            );
+
+            note("\tA fluent builder will be generated for " + candidate);
+            candidates.add(candidate);
+
+    }
+
+    private void processExecutableElement(final ExecutableElement xe, final String buildableClassName) throws NoNoArgCtorException,CtorIsNotPublicException  {
+        if (isCtor(xe)) {
+            if (!isNoArg(xe)) {
+                throw new NoNoArgCtorException("\t'" + buildableClassName + "' needs a no arg constructor in order to FluderProcessor be able to generate a fluent builder");
+            }
+            if (isNonPublic(xe)) {
+                throw new CtorIsNotPublicException("\t'" + buildableClassName + "' constructor is private, it will be accessed by reflection");
+            }
+        }
+    }
+
+    private static boolean isCtor(final ExecutableElement element) {
+        return "<init>".equals(element.getSimpleName().toString());
+    }
+
+    private static boolean isNoArg(final ExecutableElement xe){
+        return xe.getParameters().isEmpty();
     }
 
     private void generateFiles(final TypeElement tl, final String packageName, final List<FluderFile> files) {
@@ -208,7 +235,6 @@ public class FluderProcessor extends AbstractProcessor {
             }
         }
     }
-
 
     private List<Validation> processValidationAnnotations(Element el) {
         final List<Validation> out = new LinkedList<>();
