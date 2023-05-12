@@ -42,6 +42,7 @@ subprojects {
     }
 
     test {
+        useJUnitPlatform()
         finalizedBy jacocoTestReport // report is always generated after tests run
     }
 
@@ -60,9 +61,5 @@ subprojects {
             property "sonar.organization", "tokazio"
             property "sonar.host.url", "https://sonarcloud.io"
         }
-    }
-
-    test {
-        useJUnitPlatform()
     }
 }

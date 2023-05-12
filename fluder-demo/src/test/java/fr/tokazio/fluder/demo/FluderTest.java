@@ -3,14 +3,15 @@ package fr.tokazio.fluder.demo;
 import com.example.Email;
 import com.example.EmailBuilder;
 import com.example.EmailCreator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class FluderTest {
+class FluderTest {
 
     @Test
-    public void testEmailRequired() {
+    void testEmailRequired() {
         //given
         EmailCreator builder = EmailBuilder.getInstance()
                 .setTo("to")
@@ -29,7 +30,7 @@ public class FluderTest {
     }
 
     @Test
-    public void testEmailWithOptionnal() {
+    void testEmailWithOptionnal() {
         //given
         EmailCreator builder = EmailBuilder.getInstance()
                 .setTo("to")
@@ -46,8 +47,7 @@ public class FluderTest {
                 .contains("to", "from", "subject", "content", "bcc", "cc");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testEmailWhenToIsNull() {
+    void testEmailWhenToIsNull() {
         //given
         EmailCreator builder = EmailBuilder.getInstance()
                 .setTo(null)
@@ -55,12 +55,10 @@ public class FluderTest {
                 .setSubject("subject")
                 .setBody("content");
         //when
-        Email actual = builder.build();
-
+        assertThrows(IllegalArgumentException.class, builder::build);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testEmailWhenSubjectIsNull() {
+    void testEmailWhenSubjectIsNull() {
         //given
         EmailCreator builder = EmailBuilder.getInstance()
                 .setTo("to")
@@ -68,8 +66,7 @@ public class FluderTest {
                 .setSubject(null)
                 .setBody("content");
         //when
-        Email actual = builder.build();
-
+        assertThrows(IllegalArgumentException.class, builder::build);
     }
 
 }
