@@ -44,26 +44,7 @@ public class FluderClassProcessor {
         final List<FluderElement> ordered = new LinkedList<>();
         final List<FluderElement> unordered = new LinkedList<>();
         for (FluderElement enclosedElement : fluderClass.getEnclosedElements()) {
-            fluderLogger.note("* Found element '" + enclosedElement.getSimpleName() + "' in " + fluderClass.getQualifiedName());
-            if (enclosedElement.isMethod()) {
-                try {
-                    processExecutableElement(enclosedElement, fluderClass.getQualifiedName());
-                } catch (CtorIsNotPublicException ex) {
-                    fluderLogger.warn(ex.getMessage());
-                    fluderClass.setNoArgCtorIsNotPublic(true);
-                } catch (NoNoArgCtorException ex) {
-                    fluderLogger.error(ex.getMessage());
-                }
-            } else if (enclosedElement.isField()) {
-                try {
-                    processVariableElement(enclosedElement, fluderClass, ordered, unordered);
-                } catch (IgnoreElementException ex) {
-                    fluderLogger.note(ex.getMessage());
-                }
-            } else {
-                fluderLogger.note("\t" + enclosedElement.getSimpleName() + " is not a field.");
-                fluderLogger.note("\tFluderProcessor can't handle it at this time.");
-            }
+            processEnclosedElement(fluderClass, ordered, unordered, enclosedElement);
         }
         //all or nothing required fields ordered
         if (!ordered.isEmpty() && !unordered.isEmpty()) {
@@ -71,6 +52,29 @@ public class FluderClassProcessor {
             for (FluderElement e : unordered) {
                 fluderLogger.error("Please put @Order on '" + fluderClass.getQualifiedName() + "::" + e.getSimpleName() + "'");
             }
+        }
+    }
+
+    private void processEnclosedElement(final FluderClass fluderClass, final List<FluderElement> ordered, final List<FluderElement> unordered, final FluderElement enclosedElement) {
+        fluderLogger.note("* Found element '" + enclosedElement.getSimpleName() + "' in " + fluderClass.getQualifiedName());
+        if (enclosedElement.isMethod()) {
+            try {
+                processExecutableElement(enclosedElement, fluderClass.getQualifiedName());
+            } catch (CtorIsNotPublicException ex) {
+                fluderLogger.warn(ex.getMessage());
+                fluderClass.setNoArgCtorIsNotPublic(true);
+            } catch (NoNoArgCtorException ex) {
+                fluderLogger.error(ex.getMessage());
+            }
+        } else if (enclosedElement.isField()) {
+            try {
+                processVariableElement(enclosedElement, fluderClass, ordered, unordered);
+            } catch (IgnoreElementException ex) {
+                fluderLogger.note(ex.getMessage());
+            }
+        } else {
+            fluderLogger.note("\t" + enclosedElement.getSimpleName() + " is not a field.");
+            fluderLogger.note("\tFluderProcessor can't handle it at this time.");
         }
     }
 

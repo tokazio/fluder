@@ -9,30 +9,30 @@ import javax.tools.Diagnostic;
 
 public class FluderLoggerImpl implements FluderLogger {
 
-    private final Logger LOGGER;
+    private final Logger logger;
 
     private Messager messager;
 
     public FluderLoggerImpl(final Messager messager, final Class<?> clazz){
         this.messager = messager;
-        this.LOGGER = LoggerFactory.getLogger(clazz);
+        this.logger = LoggerFactory.getLogger(clazz);
     }
 
     @Override
     public void error(final String str) {
         messager.printMessage(Diagnostic.Kind.ERROR, str);
-        LOGGER.error(str);
+        logger.error(str);
     }
 
     @Override
     public void note(final String str) {
         messager.printMessage(Diagnostic.Kind.NOTE, str);
-        LOGGER.debug(str);
+        logger.debug(str);
     }
 
     @Override
     public void warn(final String str) {
         messager.printMessage(Diagnostic.Kind.WARNING, str);
-        LOGGER.warn(str);
+        logger.warn(str);
     }
 }

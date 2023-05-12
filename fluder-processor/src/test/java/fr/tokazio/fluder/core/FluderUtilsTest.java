@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FluderUtilsTest {
+class FluderUtilsTest {
 
     @Test
-    public void testFirstUpper() {
+    void testFirstUpper() {
         //given
         //when
         final String actual = FluderUtils.firstUpper("testStr");
@@ -16,7 +16,7 @@ public class FluderUtilsTest {
     }
 
     @Test
-    public void testFirstUpperFromNull() {
+    void testFirstUpperFromNull() {
         //given
         //when
         final String actual = FluderUtils.firstUpper(null);
@@ -25,7 +25,7 @@ public class FluderUtilsTest {
     }
 
     @Test
-    public void testFirstUpperFromEmpty() {
+    void testFirstUpperFromEmpty() {
         //given
         //when
         final String actual = FluderUtils.firstUpper("");
@@ -34,7 +34,7 @@ public class FluderUtilsTest {
     }
 
     @Test
-    public void testFirstLower() {
+    void testFirstLower() {
         //given
         //when
         final String actual = FluderUtils.firstLower("TestStr");
@@ -43,7 +43,7 @@ public class FluderUtilsTest {
     }
 
     @Test
-    public void testFirstLowerFromNull() {
+    void testFirstLowerFromNull() {
         //given
         //when
         final String actual = FluderUtils.firstLower(null);
@@ -52,7 +52,7 @@ public class FluderUtilsTest {
     }
 
     @Test
-    public void testFirstLowerFromEmpty() {
+    void testFirstLowerFromEmpty() {
         //given
         //when
         final String actual = FluderUtils.firstLower("");
