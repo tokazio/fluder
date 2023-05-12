@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import javax.tools.JavaFileObject;
 import java.util.Collections;
 
-public class FluderProcessorTest {
+class FluderProcessorTest {
 
     private static final String NEW_LINE = "/n";
 
@@ -60,7 +60,7 @@ public class FluderProcessorTest {
  */
 
     @Test
-    public void testGeneratedJavaFile() {
+    void testGeneratedJavaFile() {
 
         final JavaFileObject simple = JavaFileObjects
                 .forResource("Simple.java");
@@ -90,7 +90,7 @@ public class FluderProcessorTest {
     }
 
     @Test
-    public void testBuildablePrivateNoArgCtor() {
+    void testBuildablePrivateNoArgCtor() {
 
         final JavaFileObject privateNoArgCtor = JavaFileObjects
                 .forResource("PrivateNoArgCtor.java");
@@ -104,7 +104,7 @@ public class FluderProcessorTest {
     }
 
     @Test
-    public void testBuildableWithoutANoArgCtor() {
+    void testBuildableWithoutANoArgCtor() {
 
         final JavaFileObject withoutNoArgCtor = JavaFileObjects
                 .forResource("WithoutNoArgCtor.java");
@@ -118,7 +118,7 @@ public class FluderProcessorTest {
     }
 
     @Test
-    public void testBuildablePartialOrder() {
+    void testBuildablePartialOrder() {
 
         final JavaFileObject partialOrder = JavaFileObjects
                 .forResource("PartialOrder.java");

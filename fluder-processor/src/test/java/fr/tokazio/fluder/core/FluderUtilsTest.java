@@ -1,61 +1,61 @@
-package fr.tokazio.fluder.processor;
+package fr.tokazio.fluder.core;
 
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FluderCandidateTest {
+class FluderUtilsTest {
 
     @Test
-    public void testFirstUpper() {
+    void testFirstUpper() {
         //given
         //when
-        final String actual = FluderCandidate.firstUpper("testStr");
+        final String actual = FluderUtils.firstUpper("testStr");
         //then
         assertThat(actual).isEqualTo("TestStr");
     }
 
     @Test
-    public void testFirstUpperFromNull() {
+    void testFirstUpperFromNull() {
         //given
         //when
-        final String actual = FluderCandidate.firstUpper(null);
+        final String actual = FluderUtils.firstUpper(null);
         //then
         assertThat(actual).isEmpty();
     }
 
     @Test
-    public void testFirstUpperFromEmpty() {
+    void testFirstUpperFromEmpty() {
         //given
         //when
-        final String actual = FluderCandidate.firstUpper("");
+        final String actual = FluderUtils.firstUpper("");
         //then
         assertThat(actual).isEmpty();
     }
 
     @Test
-    public void testFirstLower() {
+    void testFirstLower() {
         //given
         //when
-        final String actual = FluderCandidate.firstLower("TestStr");
+        final String actual = FluderUtils.firstLower("TestStr");
         //then
         assertThat(actual).isEqualTo("testStr");
     }
 
     @Test
-    public void testFirstLowerFromNull() {
+    void testFirstLowerFromNull() {
         //given
         //when
-        final String actual = FluderCandidate.firstLower(null);
+        final String actual = FluderUtils.firstLower(null);
         //then
         assertThat(actual).isEmpty();
     }
 
     @Test
-    public void testFirstLowerFromEmpty() {
+    void testFirstLowerFromEmpty() {
         //given
         //when
-        final String actual = FluderCandidate.firstLower("");
+        final String actual = FluderUtils.firstLower("");
         //then
         assertThat(actual).isEmpty();
     }

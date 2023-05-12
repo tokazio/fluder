@@ -1,10 +1,10 @@
-package fr.tokazio.fluder.processor;
+package fr.tokazio.fluder.core;
 
 public interface FluderField {
 
     String getTypeName();
 
-    String getName();
+    String getSimpleName();
 
     boolean isNonPublic();
 }

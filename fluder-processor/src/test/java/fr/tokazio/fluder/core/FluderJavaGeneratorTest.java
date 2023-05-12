@@ -1,17 +1,17 @@
-package fr.tokazio.fluder.processor;
+package fr.tokazio.fluder.core;
 
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FluderTest {
+class FluderJavaGeneratorTest {
 
     @Test
     void testBuilderNameOverridingClassName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.builderName("aBuilderName", "myClassName");
+        final String actual = fluderJavaGenerator.builderName("aBuilderName", "myClassName");
         //then
         assertThat(actual).isEqualTo("ABuilderName");
     }
@@ -19,9 +19,9 @@ class FluderTest {
     @Test
     void testBuilderNameFromClassName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.builderName("", "myClassName");
+        final String actual = fluderJavaGenerator.builderName("", "myClassName");
         //then
         assertThat(actual).isEqualTo("MyClassNameBuilder");
     }
@@ -29,9 +29,9 @@ class FluderTest {
     @Test
     void testCustomBuilderNameFromClassName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.builderName("$QuiConstruit", "myClassName");
+        final String actual = fluderJavaGenerator.builderName("$QuiConstruit", "myClassName");
         //then
         assertThat(actual).isEqualTo("MyClassNameQuiConstruit");
     }
@@ -39,9 +39,9 @@ class FluderTest {
     @Test
     void testCreatorNameOverridingClassName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.creatorName("aCreatorName", "myClassName");
+        final String actual = fluderJavaGenerator.creatorName("aCreatorName", "myClassName");
         //then
         assertThat(actual).isEqualTo("ACreatorName");
     }
@@ -49,9 +49,9 @@ class FluderTest {
     @Test
     void testCreatorName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.creatorName("", "myClassName");
+        final String actual = fluderJavaGenerator.creatorName("", "myClassName");
         //then
         assertThat(actual).isEqualTo("MyClassNameCreator");
     }
@@ -59,9 +59,9 @@ class FluderTest {
     @Test
     void testCustomCreatorName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.creatorName("$QuiCree", "myClassName");
+        final String actual = fluderJavaGenerator.creatorName("$QuiCree", "myClassName");
         //then
         assertThat(actual).isEqualTo("MyClassNameQuiCree");
     }
@@ -69,9 +69,9 @@ class FluderTest {
     @Test
     void testInstanceMethodName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.instanceMethodName("MyInstanceMethodName");
+        final String actual = fluderJavaGenerator.instanceMethodName("MyInstanceMethodName");
         //then
         assertThat(actual).isEqualTo("myInstanceMethodName");
     }
@@ -79,9 +79,9 @@ class FluderTest {
     @Test
     void testEmptyInstanceMethodName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.instanceMethodName("");
+        final String actual = fluderJavaGenerator.instanceMethodName("");
         //then
         assertThat(actual).isEqualTo("getInstance");
     }
@@ -89,9 +89,9 @@ class FluderTest {
     @Test
     void testBuildMethodName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.buildMethodName("MyMethodName");
+        final String actual = fluderJavaGenerator.buildMethodName("MyMethodName");
         //then
         assertThat(actual).isEqualTo("myMethodName");
     }
@@ -99,9 +99,9 @@ class FluderTest {
     @Test
     void testEmptyBuildMethodName() {
         //given
-        Fluder fluder = new Fluder();
+        FluderJavaGenerator fluderJavaGenerator = new FluderJavaGenerator();
         //when
-        final String actual = fluder.buildMethodName("");
+        final String actual = fluderJavaGenerator.buildMethodName("");
         //then
         assertThat(actual).isEqualTo("build");
     }
